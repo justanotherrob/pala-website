@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Allergen matrix for current menu items." />
+
+  <title>Pala Pizza | Allergen Matrix</title>
+
+  <!-- Cabin font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+
+  <style>
+    body{
+      margin:0;
+      padding:0;
+      background:#F7F5F3;
+      color:#000;
+      font-family:"Cabin", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* Allergen Notice (tighter spacing) */
+    .allergen-notice{
+      max-width:760px;
+      margin:16px auto 28px;
+      padding:0 20px;
+      text-align:center;
+      font-family:Arial, Helvetica, sans-serif;
+      font-size:14px;
+      line-height:1.6;
+      color:#444;
+    }
+
+    /* Logo Header */
+    .logo-header{
+      background:#686A49;
+      padding:14px 16px;
+      text-align:center;
+    }
+
+    .logo-header a{ display:inline-block; }
+
+    .logo-header img{
+      height:50px;
+      width:auto;
+      display:block;
+      margin:0 auto;
+    }
+
+    /* Header */
+    .top{
+      padding:48px 20px 18px;
+      text-align:center;
+      font-family: Arial, Helvetica, sans-serif;
+      letter-spacing:0.08em;
+      line-height:1.6;
+    }
+
+    .top h1{
+      margin:0 0 12px;
+      font-family: Arial, Helvetica, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 44px;
+      font-weight: 700;
+    }
+
+    .top h2{
+      margin:0 0 18px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 18px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color:#333;
+    }
+
+    @media (max-width:520px){
+      .top h1{ font-size:30px; }
+      .top h2{ font-size:16px; }
+    }
+
+    /* Layout (tighter bottom padding) */
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px 20px 24px; /* was 56px */
+      text-align: center;
+    }
+
+    .intro-title{
+      font-family: Arial, Helvetica, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 22px;
+      margin: 10px 0 18px;
+    }
+
+    .field{
+      display:flex;
+      justify-content:center;
+      margin-bottom: 14px;
+    }
+
+    .search{
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.12);
+      background:#fff;
+      min-width: min(520px, 92vw);
+      outline:none;
+    }
+
+    /* Desktop Table */
+    .scroll-hint{
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #555;
+      text-align: right;
+      margin: 6px 4px 8px;
+      opacity: 0.8;
+      user-select: none;
+    }
+
+    .table-shell{
+      position: relative;
+      background:#fff;
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 16px;
+      overflow: hidden;
+      text-align:left;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+    }
+
+    .table-shell::after{
+      content:"";
+      position:absolute;
+      top:0;
+      right:0;
+      width:36px;
+      height:100%;
+      pointer-events:none;
+      background: linear-gradient(
+        to right,
+        rgba(255,255,255,0),
+        rgba(255,255,255,1)
+      );
+    }
+
+    .table-scroll{
+      overflow:auto;
+      max-height:70vh;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table{
+      border-collapse: separate;
+      border-spacing: 0;
+      width: max-content;
+      min-width: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    thead th{
+      position: sticky;
+      top: 0;
+      background:#F7F5F3;
+      border-bottom:1px solid rgba(0,0,0,0.1);
+      padding:12px;
+      font-size:12px;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      text-align:center;
+      white-space:nowrap;
+      z-index:3;
+    }
+
+    thead th:first-child{
+      text-align:left;
+      z-index:4;
+    }
+
+    tbody th{
+      position: sticky;
+      left: 0;
+      background:#fff;
+      border-right:1px solid rgba(0,0,0,0.08);
+      padding:12px;
+      font-size:13px;
+      text-transform:uppercase;
+      white-space:nowrap;
+      z-index:2;
+      text-align:left;
+    }
+
+    tbody td{
+      padding:10px 12px;
+      text-align:center;
+      border-bottom:1px solid rgba(0,0,0,0.06);
+      font-size:14px;
+      min-width:70px;
+    }
+
+    td.yes{ font-weight:700; }
+    td.no{ opacity:0.5; }
+    td.other{ opacity:0.8; }
+
+    .table-scroll::-webkit-scrollbar{
+      height: 10px;
+      width: 10px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb{
+      background: rgba(0,0,0,0.25);
+      border-radius: 6px;
+    }
+
+    .table-scroll::-webkit-scrollbar-track{
+      background: rgba(0,0,0,0.05);
+    }
+
+    /* Mobile Cards */
+    .cards{
+      display:none;
+      text-align:left;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid rgba(0,0,0,0.1);
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:12px;
+      box-shadow:0 1px 0 rgba(0,0,0,0.03);
+    }
+
+    .card-title{
+      font-family: Arial, Helvetica, sans-serif;
+      text-transform:uppercase;
+      letter-spacing:0.12em;
+      font-size:14px;
+      font-weight:700;
+      margin-bottom:10px;
+      line-height:1.3;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:6px;
+    }
+
+    .chip{
+      border:1px solid rgba(0,0,0,0.12);
+      border-radius:999px;
+      padding:7px 10px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size:11px;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      background:#F7F5F3;
+      white-space:nowrap;
+    }
+
+    .chip strong{
+      margin-right:5px;
+      font-weight:800;
+    }
+
+    .empty-note{
+      font-size:13px;
+      color:#444;
+      opacity:0.8;
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    @media (max-width:720px){
+      .scroll-hint{ display:none; }
+      .table-shell{ display:none; }
+      .cards{ display:block; }
+    }
+
+    /* Error */
+    .error{
+      max-width:760px;
+      margin:40px auto;
+      padding:16px 20px;
+      border:1px solid #ffd0d0;
+      background:#fff3f3;
+      border-radius:12px;
+      color:#700;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      text-align:left;
+    }
+
+    /* Footer */
+    .site-footer{
+      background:#686A49;
+      color:#F7F5F3;
+      text-align:center;
+      padding:24px 16px;
+      font-size:14px;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .site-footer a{
+      color:#F7F5F3;
+      text-decoration:none;
+    }
+
+    .site-footer a:hover{
+      text-decoration:underline;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="logo-header">
+  <a href="index.html">
+    <img src="logo.png" alt="Pala Pizza">
+  </a>
+</header>
+
+<header class="top">
+  <h1>ALLERGENS</h1>
+  <h2>Always speak to staff if you have an allergy or intolerance.</h2>
+</header>
+
+<main class="wrap">
+
+  <div class="field">
+    <input
+      class="search"
+      id="searchBox"
+      type="search"
+      placeholder="Search dish name..."
+      autocomplete="off"
+    />
+  </div>
+
+  <div class="scroll-hint">← Scroll horizontally to see all allergens →</div>
+
+  <section class="table-shell">
+    <div class="table-scroll" id="tableScroll">
+      <table id="matrixTable"></table>
+    </div>
+  </section>
+
+  <section class="cards" id="cards"></section>
+
+</main>
+
+<div class="allergen-notice">
+  All our food is prepared in a kitchen that handles allergens. While we take care to avoid cross-contamination, we cannot guarantee traces won’t be present. Please speak to staff before ordering.
+</div>
+
+<footer class="site-footer">
+  <a href="https://instagram.com/pala.edin" target="_blank" rel="noopener">
+    @pala.edin &#124; Instagram
+  </a>
+</footer>
+
+<script>
+const CSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQMh2PcTnTmzc3ceqba7QABPzH0WFLSNhJTGuLPecynwSr_kLAVzwoZJHDHJ3OnA_qGrloBawo6lHx1/pub?gid=0&single=true&output=csv";
+
+/* Utils */
+
+function escapeHTML(str){
+  return String(str).replace(/[&<>"']/g, m => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  }[m]));
+}
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], cell = "", inQuotes = false;
+
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    const n = text[i+1];
+
+    if(c === '"' && inQuotes && n === '"'){
+      cell += '"'; i++; continue;
+    }
+
+    if(c === '"'){
+      inQuotes = !inQuotes; continue;
+    }
+
+    if(!inQuotes && c === ","){
+      row.push(cell); cell=""; continue;
+    }
+
+    if(!inQuotes && c === "\n"){
+      row.push(cell);
+      rows.push(row);
+      row=[]; cell=""; continue;
+    }
+
+    if(c !== "\r") cell += c;
+  }
+
+  if(cell || row.length){
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows
+    .map(r => r.map(v => (v||"").trim()))
+    .filter(r => r.some(v => v !== ""));
+}
+
+function normaliseCell(value){
+  const v = String(value||"").trim();
+  const l = v.toLowerCase();
+
+  if(!v) return { kind:"empty", text:"" };
+
+  if(["y","yes","true","1","contains"].includes(l))
+    return { kind:"yes", text:"✓" };
+
+  if(["n","no","false","0","does not contain","doesn't contain"].includes(l))
+    return { kind:"no", text:"–" };
+
+  return { kind:"other", text:v };
+}
+
+/* Data */
+
+let dishes = [];
+let allergens = [];
+
+/* Build Desktop Table */
+
+function buildTable(filter=null){
+  const table = document.getElementById("matrixTable");
+  const idxs = filter ?? dishes.map((_,i)=>i);
+
+  const thead = document.createElement("thead");
+  const hr = document.createElement("tr");
+
+  const th0 = document.createElement("th");
+  th0.textContent = "Dish";
+  hr.appendChild(th0);
+
+  allergens.forEach(a=>{
+    const th=document.createElement("th");
+    th.textContent=a.name;
+    hr.appendChild(th);
+  });
+
+  thead.appendChild(hr);
+
+  const tbody=document.createElement("tbody");
+
+  idxs.forEach(i=>{
+    const tr=document.createElement("tr");
+
+    const th=document.createElement("th");
+    th.textContent=dishes[i];
+    tr.appendChild(th);
+
+    allergens.forEach(a=>{
+      const td=document.createElement("td");
+      const info=normaliseCell(a.values[i]);
+
+      if(info.kind==="yes") td.className="yes";
+      if(info.kind==="no") td.className="no";
+      if(info.kind==="other") td.className="other";
+
+      td.textContent=info.text;
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  table.innerHTML="";
+  table.appendChild(thead);
+  table.appendChild(tbody);
+}
+
+/* Build Mobile Cards */
+
+function buildCards(filter=null){
+  const cards=document.getElementById("cards");
+  const idxs = filter ?? dishes.map((_,i)=>i);
+
+  cards.innerHTML = idxs.map(i=>{
+    const name=dishes[i];
+
+    const present=[];
+    const advisory=[];
+
+    allergens.forEach(a=>{
+      const info=normaliseCell(a.values[i]);
+
+      if(info.kind==="yes"){
+        present.push(a.name);
+      }
+
+      if(info.kind==="other" && info.text){
+        advisory.push({ name:a.name, note:info.text });
+      }
+    });
+
+    return `
+      <article class="card">
+        <div class="card-title">${escapeHTML(name)}</div>
+
+        ${
+          present.length
+          ? `<div class="chip-row">
+              ${present.map(a=>
+                `<span class="chip"><strong>✓</strong>${escapeHTML(a)}</span>`
+              ).join("")}
+            </div>`
+          : `<p class="empty-note">No allergens marked as present.</p>`
+        }
+
+        ${
+          advisory.length
+          ? `<div class="chip-row">
+              ${advisory.map(a=>
+                `<span class="chip"><strong>⚠</strong>${escapeHTML(a.name)} – ${escapeHTML(a.note)}</span>`
+              ).join("")}
+            </div>`
+          : ``
+        }
+      </article>
+    `;
+  }).join("");
+}
+
+/* Search */
+
+function applySearch(){
+  const q=document.getElementById("searchBox").value.trim().toLowerCase();
+
+  if(!q){
+    buildTable();
+    buildCards();
+    return;
+  }
+
+  const idxs=dishes
+    .map((d,i)=>({d,i}))
+    .filter(x=>x.d.toLowerCase().includes(q))
+    .map(x=>x.i);
+
+  buildTable(idxs);
+  buildCards(idxs);
+}
+
+/* Load */
+
+async function loadMatrix(){
+  try{
+    const res=await fetch(CSV_URL,{cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+
+    const text=await res.text();
+    const rows=parseCSV(text);
+
+    if(!rows.length) throw new Error("Empty CSV");
+
+    const headers=rows[0];
+
+    dishes=headers.slice(1).map(h=>h.trim()).filter(Boolean);
+
+    allergens=rows.slice(1)
+      .filter(r=>(r[0]||"").trim()!=="")
+      .map(r=>({
+        name:(r[0]||"").trim(),
+        values:dishes.map((_,i)=>(r[i+1]||"").trim())
+      }));
+
+    buildTable();
+    buildCards();
+
+  }catch(err){
+    console.error(err);
+    document.body.innerHTML =
+      `<div class="error">Allergen matrix unavailable. (${escapeHTML(err.message)})</div>`;
+  }
+}
+
+/* Init */
+
+document.getElementById("searchBox").addEventListener("input",applySearch);
+loadMatrix();
+</script>
+
+</body>
+</html>

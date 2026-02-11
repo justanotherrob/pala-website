@@ -3,9 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow">
 
-  <title>Pala Pizza – Site Coming Soon</title>
+  <!-- Allow indexing (remove if test site) -->
+  <meta name="robots" content="index, follow">
+
+  <meta name="description" content="Roman-style pizza by the slice in Leith, Edinburgh. Crisp bases, classic Romana toppings, baked fresh and cut to order. Take-away only.">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-B746PEC10K"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-B746PEC10K');
+  </script>
 
   <!-- Favicons -->
   <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
@@ -14,92 +25,389 @@
   <link rel="icon" href="favicon_io/favicon.ico" sizes="any">
   <link rel="manifest" href="favicon_io/site.webmanifest">
 
-  <!-- Cabin font -->
+  <title>Pala Pizza Leith | Pizza al Taglio Romana</title>
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400..700&display=swap" rel="stylesheet">
 
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-    }
 
     body {
-      background: #686A49;
-      color: #F7F5F3;
+      margin: 0;
+      padding: 0;
+      background: #F7F5F3;
+      color: #000;
       font-family: "Cabin", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* Hero */
+
+    .hero {
+      width: 100%;
+      height: 100vh;
+      min-height: 500px;
+      background-image: url("header-image2.jpg");
+      background-size: cover;
+      background-position: center;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    .hero-logo {
+      max-width: 420px;
+      width: 60%;
+    }
+
+    @media (max-width: 768px) {
+      .hero { min-height: 60vh; }
+      .hero-logo { max-width: 260px; }
+    }
+
+    /* Intro */
+
+    .intro {
+      text-align: center;
+      padding: 48px 20px 24px;
+      letter-spacing: 0.08em;
+      font-size: 20px;
+      line-height: 1.6;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .intro h1 {
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 50px;
+    }
+
+    .intro h2 {
+      margin-bottom: 24px;
+      font-size: 24px;
+      font-weight: 400;
+      color: #333;
+    }
+
+    @media (max-width: 520px) {
+      .intro h1 { font-size: 32px; }
+      .intro h2 { font-size: 18px; }
+    }
+
+    /* Menu */
+
+    .menu {
+      max-width: 760px;
+      margin: auto;
+      padding: 32px 20px 56px;
+      text-align: centre;
+    }
+
+    .menu-card {
+      background: #fffdf9;
+      border: 1px solid #eee6dc;
+      padding: 40px 28px 48px;
+      border-radius: 6px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .menu-logo {
+      display: block;
+      margin: auto auto 24px;
+      max-width: 180px;
+      width: 60%;
+    }
+
+    .intro-title {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 28px;
+      margin-bottom: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .item {
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 40px;
+      margin: 36px 0;
+    }
+
+    .note {
+      font-size: 22px;
+      margin: -16px 0 18px;
+    }
+
+    .price {
+      font-style: italic;
+      font-size: 30px;
+      letter-spacing: 0.08em;
+    }
+
+    .price--row {
+      margin: 10px 0 28px;
+    }
+
+    @media (max-width: 520px) {
+      .item { font-size: 32px; }
+      .price { font-size: 24px; }
+    }
+
+    /* CTA */
+
+    .cta {
+      max-width: 760px;
+      margin: auto auto 64px;
+      padding: 0 20px;
       text-align: center;
     }
 
-    .wrap {
-      padding: 24px;
+    .cta-text {
+      font-size: 18px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+      color: #222;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    .logo {
-      width: 60%;
-      max-width: 420px;
-      height: auto;
-      margin-bottom: 32px;
-    }
-
-    .status {
+    .cta-button {
+      display: inline-block;
+      padding: 14px 28px;
+      background: #686A49;
+      color: #F7F5F3;
+      text-decoration: none;
+      font-weight: 700;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      letter-spacing: 0.18em;
+      border-radius: 4px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .cta-button:hover { opacity: 0.9; }
+
+    /* Footer */
+
+    .site-footer {
+      background: #686A49;
+      color: #F7F5F3;
+      text-align: center;
+      padding: 24px 16px;
       font-size: 14px;
-      margin-bottom: 32px;
-    }
-
-    .details {
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 13px;
-      line-height: 1.9;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    .details a,
-    .details a:visited,
-    .details a:hover,
-    .details a:active {
+    .site-footer a {
       color: #F7F5F3;
       text-decoration: none;
     }
 
-    .details a:hover {
-      text-decoration: underline;
-    }
+    .site-footer a:hover { text-decoration: underline; }
 
-    @media (max-width: 768px) {
-      .logo {
-        width: 70%;
-        max-width: 260px;
-      }
-    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <img src="logo.png" alt="Pala Pizza logo" class="logo">
 
-    <div class="status">
-      Site coming soon
-    </div>
+<header class="hero">
+  <img src="logo.png" alt="Pala Roman pizza logo" class="hero-logo">
+</header>
 
-    <div class="details">
-      <a href="https://maps.app.goo.gl/refCJDhQGju6NiAx9" target="_blank" rel="noopener">
-        7 Jane Street · Leith
-      </a>
-      <br>
-      <a href="https://instagram.com/pala.edin" target="_blank" rel="noopener">
-        @pala.edin
-      </a>
-    </div>
+<div class="intro">
+
+  <h1>Pizza al Taglio Romana</h1>
+
+  <h2>Roman-style pizza by the slice, baked crisp and cut to order.</h2>
+
+  4–8PM THURSDAY &amp; FRIDAY<br>
+  2–8PM SATURDAY<br>
+  2–6PM SUNDAY
+
+</div>
+
+<main class="menu" id="menu">
+
+  <div class="menu-card">
+
+    <img src="logoblack.png" alt="Pala Pizza logo" class="menu-logo">
+
+    <div class="intro-title">Menu</div>
+
+    <div id="items"></div>
+
   </div>
+
+</main>
+
+<section class="cta">
+  <a href="allergens.html" class="cta-button">Allergens</a>
+</section>
+
+<section class="cta">
+
+  <p class="cta-text">
+    Walk in to order by the slice or two. Wanting more?<br>
+    Email us about full trays and advance orders.
+  </p>
+
+  <a href="#" class="cta-button" id="emailLink">Email Here</a>
+
+</section>
+
+<footer class="site-footer">
+
+  <a href="https://maps.app.goo.gl/refCJDhQGju6NiAx9" target="_blank" rel="noopener">
+    7 Jane Street | Leith
+  </a>
+
+  <br><br>
+
+  <a href="https://instagram.com/pala.edin" target="_blank" rel="noopener">
+    @pala.edin | Instagram
+  </a>
+
+</footer>
+
+<!-- Scripts -->
+
+<script>
+
+  /* Email setup */
+
+  (function () {
+
+    const user = "ciao";
+    const domain = "palapizza.co.uk";
+    const subject = "Website order/Query";
+
+    const link = document.getElementById("emailLink");
+    if (!link) return;
+
+    link.href =
+      "mailto:" + user + "@" + domain +
+      "?subject=" + encodeURIComponent(subject);
+
+  })();
+
+
+  /* Menu loader */
+
+  const CSV_URL =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPGEJB7JUuDLt_OatHjTLsr0bssECiWK8UR_95IM5q-2EDpXo2FSIxBzcrUfs5utZg_p4VT8by9srN/pub?gid=0&single=true&output=csv";
+
+
+  function parseCSV(text) {
+
+    const rows = [];
+    let row = [], cell = "", inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+
+      const c = text[i], n = text[i + 1];
+
+      if (c === '"' && inQuotes && n === '"') {
+        cell += '"'; i++; continue;
+      }
+
+      if (c === '"') { inQuotes = !inQuotes; continue; }
+
+      if (!inQuotes && c === ",") {
+        row.push(cell); cell = ""; continue;
+      }
+
+      if (!inQuotes && c === "\n") {
+        row.push(cell); rows.push(row);
+        row = []; cell = ""; continue;
+      }
+
+      if (c !== "\r") cell += c;
+    }
+
+    if (cell || row.length) {
+      row.push(cell); rows.push(row);
+    }
+
+    const headers = (rows.shift() || [])
+      .map(h => h.trim().toLowerCase());
+
+    return rows.map(r =>
+      Object.fromEntries(
+        headers.map((h, i) => [h, (r[i] || "").trim()])
+      )
+    );
+  }
+
+
+  function formatPrice(v) {
+    const t = (v || "").trim();
+    if (!t) return "";
+    return t.startsWith("£") ? t : "£" + t;
+  }
+
+
+  async function loadMenu() {
+
+    const el = document.getElementById("items");
+
+    try {
+
+      const res = await fetch(CSV_URL, { cache: "no-store" });
+      if (!res.ok) throw res.status;
+
+      const rows = parseCSV(await res.text());
+
+      el.innerHTML = rows.map(r => `
+        <div class="item">${r.name}</div>
+        ${r.tag ? `<div class="note">${r.tag}</div>` : ""}
+        ${r.price ? `<div class="price price--row">${formatPrice(r.price)}</div>` : ""}
+      `).join("");
+
+    } catch {
+
+      el.innerHTML = "<p>Menu unavailable.</p>";
+
+    }
+  }
+
+  loadMenu();
+
+</script>
+
+
+<!-- Click tracking -->
+
+<script>
+
+  document.addEventListener('click', function (e) {
+
+    const a = e.target.closest('a');
+    if (!a || typeof gtag !== 'function') return;
+
+    const href = a.getAttribute('href') || '';
+    const url = a.href || href;
+
+    if (href.includes('allergens.html')) {
+      gtag('event', 'click_allergens', { link_url: url });
+    }
+
+    if (href.startsWith('mailto:')) {
+      gtag('event', 'click_email', { link_url: href });
+    }
+
+    if (href.includes('maps.app.goo.gl')) {
+      gtag('event', 'click_maps', { link_url: url });
+    }
+
+    if (href.includes('instagram.com')) {
+      gtag('event', 'click_instagram', { link_url: url });
+    }
+
+  });
+
+</script>
+
 </body>
 </html>
