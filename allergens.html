@@ -8,6 +8,15 @@
 
   <title>Pala Pizza | Allergen Matrix</title>
 
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-B746PEC10K"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-B746PEC10K');
+  </script>
+
   <!-- Cabin font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -605,6 +614,25 @@ async function loadMatrix(){
 
 document.getElementById("searchBox").addEventListener("input",applySearch);
 loadMatrix();
+</script>
+
+<!-- Click tracking (GA4) -->
+<script>
+  document.addEventListener('click', function (e) {
+    const a = e.target.closest('a');
+    if (!a || typeof gtag !== 'function') return;
+
+    const href = a.getAttribute('href') || '';
+    const url = a.href || href;
+
+    if (href.includes('index.html')) {
+      gtag('event', 'click_home', { link_url: url });
+    }
+
+    if (href.includes('instagram.com')) {
+      gtag('event', 'click_instagram', { link_url: url });
+    }
+  });
 </script>
 
 </body>
