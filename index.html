@@ -6,6 +6,12 @@
   <meta name="robots" content="index, follow">
   <meta name="description" content="Roman-style pizza by the slice in Leith, Edinburgh. Pizza al taglio with crisp bases and seasonal toppings, all made fresh at Jane Street.">
 
+  <!-- Open Graph -->
+  <meta property="og:title" content="Pala Pizza Leith | Pizza al Taglio Romana">
+  <meta property="og:description" content="Roman-style pizza by the slice in Leith, Edinburgh. Baked crisp and cut to order.">
+  <meta property="og:image" content="header-image2.jpg">
+  <meta property="og:type" content="website">
+
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-B746PEC10K"></script>
   <script>
@@ -147,6 +153,13 @@
       margin: 10px 0 28px;
     }
 
+    .menu-loading {
+      color: #888;
+      font-size: 18px;
+      padding: 32px 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
     @media (max-width: 520px) {
       .item { font-size: 32px; }
       .price { font-size: 24px; }
@@ -233,13 +246,14 @@
 
     <div class="intro-title">Menu</div>
 
-    <div id="items"></div>
+    <div id="items"><p class="menu-loading">Loading menu…</p></div>
 
   </div>
 
 </main>
 
 <section class="cta">
+  <p class="cta-text">View our full allergens information.</p>
   <a href="allergens.html" class="cta-button">Allergens</a>
 </section>
 
