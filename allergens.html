@@ -31,7 +31,7 @@
       font-family:"Cabin", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
 
-    /* Allergen Notice (tighter spacing) */
+    /* Allergen Notice */
     .allergen-notice{
       max-width:760px;
       margin:16px auto 28px;
@@ -91,11 +91,11 @@
       .top h2{ font-size:16px; }
     }
 
-    /* Layout (tighter bottom padding) */
+    /* Layout */
     .wrap{
       max-width: 980px;
       margin: 0 auto;
-      padding: 18px 20px 24px; /* was 56px */
+      padding: 18px 20px 24px;
       text-align: center;
     }
 
@@ -122,6 +122,28 @@
       background:#fff;
       min-width: min(520px, 92vw);
       outline:none;
+    }
+
+    /* Loading */
+    .loading-note{
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      color: #888;
+      padding: 40px 0;
+    }
+
+    /* Error */
+    .error-note{
+      max-width:760px;
+      margin:40px auto;
+      padding:16px 20px;
+      border:1px solid #ffd0d0;
+      background:#fff3f3;
+      border-radius:12px;
+      color:#700;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size:14px;
+      text-align:left;
     }
 
     /* Desktop Table */
@@ -297,19 +319,6 @@
       .cards{ display:block; }
     }
 
-    /* Error */
-    .error{
-      max-width:760px;
-      margin:40px auto;
-      padding:16px 20px;
-      border:1px solid #ffd0d0;
-      background:#fff3f3;
-      border-radius:12px;
-      color:#700;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      text-align:left;
-    }
-
     /* Footer */
     .site-footer{
       background:#686A49;
@@ -360,7 +369,9 @@
 
   <div class="scroll-hint">← Scroll horizontally to see all allergens →</div>
 
-  <section class="table-shell">
+  <div id="loadingState"><p class="loading-note">Loading allergens…</p></div>
+
+  <section class="table-shell" id="tableShell" style="display:none;">
     <div class="table-scroll" id="tableScroll">
       <table id="matrixTable"></table>
     </div>
@@ -371,13 +382,21 @@
 </main>
 
 <div class="allergen-notice">
-  All our food is prepared in a kitchen that handles allergens. While we take care to avoid cross-contamination, we cannot guarantee traces won’t be present. Please speak to staff before ordering.
+  All our food is prepared in a kitchen that handles allergens. While we take care to avoid cross-contamination, we cannot guarantee traces won't be present. Please speak to staff before ordering.
 </div>
 
 <footer class="site-footer">
-  <a href="https://instagram.com/pala.edin" target="_blank" rel="noopener">
-    @pala.edin &#124; Instagram
+
+  <a href="https://maps.app.goo.gl/refCJDhQGju6NiAx9" target="_blank" rel="noopener">
+    7 Jane Street | Leith
   </a>
+
+  <br><br>
+
+  <a href="https://instagram.com/pala.edin" target="_blank" rel="noopener">
+    @pala.edin | Instagram
+  </a>
+
 </footer>
 
 <script>
@@ -600,13 +619,16 @@ async function loadMatrix(){
         values:dishes.map((_,i)=>(r[i+1]||"").trim())
       }));
 
+    document.getElementById("loadingState").style.display = "none";
+    document.getElementById("tableShell").style.display = "";
+
     buildTable();
     buildCards();
 
   }catch(err){
     console.error(err);
-    document.body.innerHTML =
-      `<div class="error">Allergen matrix unavailable. (${escapeHTML(err.message)})</div>`;
+    document.getElementById("loadingState").innerHTML =
+      `<div class="error-note">Allergen information unavailable. Please speak to staff directly.</div>`;
   }
 }
 
@@ -627,6 +649,10 @@ loadMatrix();
 
     if (href.includes('index.html')) {
       gtag('event', 'click_home', { link_url: url });
+    }
+
+    if (href.includes('maps.app.goo.gl')) {
+      gtag('event', 'click_maps', { link_url: url });
     }
 
     if (href.includes('instagram.com')) {
