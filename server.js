@@ -175,9 +175,34 @@ async function cleanupPendingGiftCards() {
   }
 }
 
+// ── Auto-seed admin user on startup ─────────────────────
+async function seedAdmin() {
+  const bcrypt = require('bcryptjs');
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password) {
+    console.log('[SEED] ADMIN_EMAIL or ADMIN_PASSWORD not set, skipping auto-seed');
+    return;
+  }
+  try {
+    const hash = await bcrypt.hash(password, 12);
+    const existing = await db.get('SELECT id FROM users WHERE email = $1', [email]);
+    if (existing) {
+      await db.run('UPDATE users SET password_hash = $1 WHERE email = $2', [hash, email]);
+      console.log(`[SEED] Admin password updated: ${email}`);
+    } else {
+      await db.run('INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3)', [email, hash, 'Admin']);
+      console.log(`[SEED] Admin user created: ${email}`);
+    }
+  } catch (err) {
+    console.error('[SEED] Error:', err.message);
+  }
+}
+
 // ── Start ───────────────────────────────────────────────
 async function start() {
   await initDatabase();
+  await seedAdmin();
 
   await cleanupPendingGiftCards();
   setInterval(cleanupPendingGiftCards, 24 * 60 * 60 * 1000);
