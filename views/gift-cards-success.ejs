@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gift Card Confirmation | Pala Pizza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-system,sans-serif;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased}
+:root{--olive:#636845;--cream:#FAF8F5;--mid:#5a5a5a}
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:var(--olive);box-shadow:0 1px 0 rgba(0,0,0,0.08)}
+.nav-logo{height:32px;width:auto;filter:brightness(0) invert(1)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{font-size:12px;font-weight:400;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;color:rgba(250,248,245,0.75);transition:color .3s}
+.nav-links a:hover{color:#fff}
+.success-page{max-width:500px;margin:0 auto;padding:100px 24px;text-align:center}
+.check-icon{width:56px;height:56px;color:var(--olive);margin:0 auto 20px}
+.success-page h1{font-family:'Cabin',sans-serif;font-size:32px;font-weight:400;margin-bottom:16px}
+.success-page p{color:var(--mid);font-size:16px;line-height:1.7;margin-bottom:12px}
+.success-page strong{color:#1a1a1a}
+.home-link{display:inline-block;margin-top:32px;padding:13px 32px;font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;text-decoration:none;border-radius:100px;border:1px solid #1a1a1a;color:#1a1a1a;transition:all .3s}
+.home-link:hover{background:#1a1a1a;color:var(--cream)}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="/"><img src="/images/logo.png" alt="Pala Pizza" class="nav-logo"></a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/gift-cards">Gift Cards</a></li>
+  </ul>
+</nav>
+
+<main class="success-page">
+  <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+
+  <% if (card && card.status === 'active') { %>
+    <% if (card.send_to === 'friend') { %>
+      <h1>Gift card sent!</h1>
+      <p>We've emailed a <strong>&pound;<%= (card.initial_amount / 100).toFixed(0) %></strong> gift card to <strong><%= card.recipient_name %></strong> at <strong><%= card.recipient_email %></strong>.</p>
+      <p>A receipt has been sent to your email.</p>
+    <% } else { %>
+      <h1>Gift card ready!</h1>
+      <p>We've sent your <strong>&pound;<%= (card.initial_amount / 100).toFixed(0) %></strong> gift card to <strong><%= card.purchaser_email %></strong>.</p>
+      <p>Check your inbox &mdash; it's ready to print and give in person.</p>
+    <% } %>
+  <% } else { %>
+    <h1>Thank you!</h1>
+    <p>Your payment has been received. Your gift card details will arrive by email shortly.</p>
+    <p>If you don't receive an email within 10 minutes, please contact us at ciao@palapizza.co.uk.</p>
+  <% } %>
+
+  <a href="/" class="home-link">Back to Home</a>
+</main>
+</body>
+</html>

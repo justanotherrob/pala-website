@@ -1,0 +1,78 @@
+<%- include('layout-head', { pageTitle: 'Allergens' }) %>
+
+<h1>Allergen Matrix</h1>
+<p class="subtitle">Click a cell to cycle through: empty &rarr; Yes (&check;) &rarr; No (&ndash;) &rarr; empty. Or type custom text.</p>
+
+<% if (menuItems.length === 0) { %>
+<div class="card"><p style="text-align:center;color:var(--mid);padding:24px">Add menu items first, then you can set allergen data.</p></div>
+<% } else { %>
+
+<div class="card" style="overflow-x:auto">
+  <table class="admin-table" style="min-width:max-content">
+    <thead>
+      <tr>
+        <th style="position:sticky;left:0;background:#fff;z-index:2">Dish</th>
+        <% allergens.forEach(a => { %>
+        <th style="text-align:center;min-width:70px"><%= a.name %></th>
+        <% }) %>
+      </tr>
+    </thead>
+    <tbody>
+      <% menuItems.forEach(item => { %>
+      <tr>
+        <td style="position:sticky;left:0;background:#fff;font-weight:500;z-index:1"><%= item.name %></td>
+        <% allergens.forEach(a => { %>
+          <% const val = (valueMap[item.id] && valueMap[item.id][a.id]) || ''; %>
+          <% const vl = val.toLowerCase(); %>
+          <td style="text-align:center;cursor:pointer;user-select:none"
+              data-item="<%= item.id %>" data-allergen="<%= a.id %>"
+              data-value="<%= val %>"
+              onclick="cycleValue(this)"
+              title="Click to toggle, double-click to edit">
+            <% if (['y','yes','true','1','contains'].includes(vl)) { %>
+              <span style="color:#636845;font-weight:600">&#10003;</span>
+            <% } else if (['n','no','false','0'].includes(vl)) { %>
+              <span style="opacity:0.3">&ndash;</span>
+            <% } else if (val) { %>
+              <span style="font-size:12px"><%= val %></span>
+            <% } else { %>
+              <span style="opacity:0.15">&middot;</span>
+            <% } %>
+          </td>
+        <% }) %>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+async function cycleValue(td) {
+  const itemId = td.dataset.item;
+  const allergenId = td.dataset.allergen;
+  let current = td.dataset.value.toLowerCase();
+
+  let next;
+  if (!current || current === '') next = 'yes';
+  else if (['y','yes','true','1','contains'].includes(current)) next = 'no';
+  else if (['n','no','false','0'].includes(current)) next = '';
+  else next = '';
+
+  const res = await fetch('/api/allergens/value', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ menuItemId: parseInt(itemId), allergenId: parseInt(allergenId), value: next }),
+  });
+
+  if (res.ok) {
+    td.dataset.value = next;
+    if (next === 'yes') td.innerHTML = '<span style="color:#636845;font-weight:600">&#10003;</span>';
+    else if (next === 'no') td.innerHTML = '<span style="opacity:0.3">&ndash;</span>';
+    else td.innerHTML = '<span style="opacity:0.15">&middot;</span>';
+  }
+}
+</script>
+
+<% } %>
+
+<%- include('layout-foot') %>

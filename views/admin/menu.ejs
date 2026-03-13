@@ -1,0 +1,123 @@
+<%- include('layout-head', { pageTitle: 'Menu' }) %>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+  <div>
+    <h1>Menu Items</h1>
+    <p class="subtitle">Add, edit, and reorder your menu. Prices are in pence (e.g. 450 = &pound;4.50).</p>
+  </div>
+  <button class="btn btn-primary" onclick="showAddForm()">+ Add Item</button>
+</div>
+
+<div id="addForm" class="card" style="display:none;margin-bottom:24px">
+  <h2 id="formTitle">Add Menu Item</h2>
+  <form id="itemForm" onsubmit="saveItem(event)">
+    <input type="hidden" id="editId" value="">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;gap:12px;align-items:end">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Name</label>
+        <input type="text" id="itemName" required>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Tag (optional)</label>
+        <input type="text" id="itemTag" placeholder="e.g. V, VG">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Price (pence)</label>
+        <input type="number" id="itemPrice" placeholder="450">
+      </div>
+      <div>
+        <button type="submit" class="btn btn-primary btn-sm" style="width:100%">Save</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Order</th>
+        <th>Name</th>
+        <th>Tag</th>
+        <th>Price</th>
+        <th>Visible</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="menuBody">
+      <% items.forEach((item, i) => { %>
+      <tr id="row-<%= item.id %>">
+        <td><%= item.sort_order %></td>
+        <td><strong><%= item.name %></strong></td>
+        <td><%= item.tag || '' %></td>
+        <td><%= item.price ? '&pound;' + (item.price / 100).toFixed(2) : '' %></td>
+        <td><%= item.visible ? 'Yes' : 'No' %></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick='editItem(<%= JSON.stringify(item) %>)'>Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem(<%= item.id %>)">Delete</button>
+        </td>
+      </tr>
+      <% }) %>
+      <% if (items.length === 0) { %>
+      <tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px">No menu items yet. Click "Add Item" to get started.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+function showAddForm() {
+  document.getElementById('addForm').style.display = '';
+  document.getElementById('formTitle').textContent = 'Add Menu Item';
+  document.getElementById('editId').value = '';
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemTag').value = '';
+  document.getElementById('itemPrice').value = '';
+  document.getElementById('itemName').focus();
+}
+
+function editItem(item) {
+  document.getElementById('addForm').style.display = '';
+  document.getElementById('formTitle').textContent = 'Edit Menu Item';
+  document.getElementById('editId').value = item.id;
+  document.getElementById('itemName').value = item.name;
+  document.getElementById('itemTag').value = item.tag || '';
+  document.getElementById('itemPrice').value = item.price || '';
+  document.getElementById('itemName').focus();
+}
+
+async function saveItem(e) {
+  e.preventDefault();
+  const id = document.getElementById('editId').value;
+  const data = {
+    name: document.getElementById('itemName').value,
+    tag: document.getElementById('itemTag').value,
+    price: parseInt(document.getElementById('itemPrice').value) || null,
+  };
+
+  const url = id ? '/api/menu/' + id : '/api/menu';
+  const method = id ? 'PUT' : 'POST';
+
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (res.ok) {
+    location.reload();
+  } else {
+    const err = await res.json();
+    alert(err.error || 'Failed to save');
+  }
+}
+
+async function deleteItem(id) {
+  if (!confirm('Delete this menu item? This will also remove its allergen data.')) return;
+  const res = await fetch('/api/menu/' + id, { method: 'DELETE' });
+  if (res.ok) location.reload();
+  else alert('Failed to delete');
+}
+</script>
+
+<%- include('layout-foot') %>

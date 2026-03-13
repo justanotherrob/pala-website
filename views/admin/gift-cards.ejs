@@ -1,0 +1,87 @@
+<%- include('layout-head', { pageTitle: 'Gift Cards' }) %>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+  <div>
+    <h1>Gift Cards</h1>
+    <p class="subtitle"><%= total %> gift card<%= total !== 1 ? 's' : '' %></p>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="/admin/import" class="btn btn-outline btn-sm">Import / Export</a>
+    <a href="/admin/redeem" class="btn btn-primary btn-sm">Redeem</a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+  <a href="/admin/gift-cards" class="btn btn-sm <%= status === 'all' ? 'btn-primary' : 'btn-outline' %>">All</a>
+  <a href="/admin/gift-cards?status=active" class="btn btn-sm <%= status === 'active' ? 'btn-primary' : 'btn-outline' %>">Active</a>
+  <a href="/admin/gift-cards?status=redeemed" class="btn btn-sm <%= status === 'redeemed' ? 'btn-primary' : 'btn-outline' %>">Redeemed</a>
+  <a href="/admin/gift-cards?status=expired" class="btn btn-sm <%= status === 'expired' ? 'btn-primary' : 'btn-outline' %>">Expired</a>
+  <form method="GET" action="/admin/gift-cards" style="margin-left:auto;display:flex;gap:8px">
+    <input type="hidden" name="status" value="<%= status %>">
+    <input type="text" name="search" value="<%= search %>" placeholder="Search code or email..." style="font-family:'Cabin',sans-serif;font-size:13px;padding:8px 14px;border:1px solid rgba(0,0,0,0.1);border-radius:100px;outline:none;width:240px">
+    <button type="submit" class="btn btn-outline btn-sm">Search</button>
+  </form>
+</div>
+
+<div class="card" style="overflow-x:auto">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Purchaser</th>
+        <th>Recipient</th>
+        <th>Amount</th>
+        <th>Balance</th>
+        <th>Status</th>
+        <th>Purchased</th>
+        <th>Expires</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% cards.forEach(c => { %>
+      <tr style="cursor:pointer" onclick="window.location='/admin/redeem?code=' + encodeURIComponent('<%= c.code %>')">
+        <td style="font-family:monospace;letter-spacing:1px">
+          &bull;&bull;&bull;&bull;&bull;&bull;<%= c.code.slice(-4) %>
+        </td>
+        <td>
+          <div><%= c.purchaser_name || '' %></div>
+          <div style="font-size:12px;color:var(--mid)"><%= c.purchaser_email || '' %></div>
+        </td>
+        <td>
+          <% if (c.send_to === 'friend') { %>
+          <div><%= c.recipient_name || '' %></div>
+          <div style="font-size:12px;color:var(--mid)"><%= c.recipient_email || '' %></div>
+          <% } else { %>
+          <span style="color:var(--mid);font-size:12px">Self</span>
+          <% } %>
+        </td>
+        <td>&pound;<%= (c.initial_amount / 100).toFixed(2) %></td>
+        <td>&pound;<%= (c.balance / 100).toFixed(2) %></td>
+        <td>
+          <span class="badge badge-<%= c.status %>"><%= c.status %></span>
+        </td>
+        <td><%= c.purchased_at ? new Date(c.purchased_at).toLocaleDateString('en-GB') : '' %></td>
+        <td><%= c.expires_at ? new Date(c.expires_at).toLocaleDateString('en-GB') : '' %></td>
+      </tr>
+      <% }) %>
+      <% if (cards.length === 0) { %>
+      <tr><td colspan="8" style="text-align:center;color:var(--mid);padding:24px">No gift cards found.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<% if (totalPages > 1) { %>
+<div class="pagination">
+  <% for (let p = 1; p <= totalPages; p++) { %>
+    <% if (p === page) { %>
+      <span class="current"><%= p %></span>
+    <% } else { %>
+      <a href="/admin/gift-cards?status=<%= status %>&search=<%= encodeURIComponent(search) %>&page=<%= p %>"><%= p %></a>
+    <% } %>
+  <% } %>
+</div>
+<% } %>
+
+<%- include('layout-foot') %>

@@ -1,0 +1,92 @@
+<%- include('layout-head', { pageTitle: 'Hours' }) %>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+  <div>
+    <h1>Opening Hours</h1>
+    <p class="subtitle">Edit the hours shown on the homepage.</p>
+  </div>
+  <button class="btn btn-primary" onclick="showAddHour()">+ Add Slot</button>
+</div>
+
+<div id="addHourForm" class="card" style="display:none;margin-bottom:24px">
+  <h2 id="hourFormTitle">Add Hours</h2>
+  <form onsubmit="saveHour(event)">
+    <input type="hidden" id="hourEditId" value="">
+    <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:12px;align-items:end">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Label (e.g. "Saturday")</label>
+        <input type="text" id="hourLabel" required>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Times (e.g. "2 &ndash; 8pm")</label>
+        <input type="text" id="hourTimes" required>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-primary btn-sm" style="width:100%">Save</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <table class="admin-table">
+    <thead><tr><th>Order</th><th>Day / Label</th><th>Times</th><th>Actions</th></tr></thead>
+    <tbody>
+      <% hours.forEach(h => { %>
+      <tr>
+        <td><%= h.sort_order %></td>
+        <td><strong><%= h.label %></strong></td>
+        <td><%- h.times %></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick='editHour(<%= JSON.stringify(h) %>)'>Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteHour(<%= h.id %>)">Delete</button>
+        </td>
+      </tr>
+      <% }) %>
+      <% if (hours.length === 0) { %>
+      <tr><td colspan="4" style="text-align:center;color:var(--mid);padding:24px">No hours set.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+function showAddHour() {
+  document.getElementById('addHourForm').style.display = '';
+  document.getElementById('hourFormTitle').textContent = 'Add Hours';
+  document.getElementById('hourEditId').value = '';
+  document.getElementById('hourLabel').value = '';
+  document.getElementById('hourTimes').value = '';
+}
+
+function editHour(h) {
+  document.getElementById('addHourForm').style.display = '';
+  document.getElementById('hourFormTitle').textContent = 'Edit Hours';
+  document.getElementById('hourEditId').value = h.id;
+  document.getElementById('hourLabel').value = h.label;
+  document.getElementById('hourTimes').value = h.times;
+}
+
+async function saveHour(e) {
+  e.preventDefault();
+  const id = document.getElementById('hourEditId').value;
+  const data = {
+    label: document.getElementById('hourLabel').value,
+    times: document.getElementById('hourTimes').value,
+  };
+  const url = id ? '/api/hours/' + id : '/api/hours';
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+  if (res.ok) location.reload();
+  else alert('Failed to save');
+}
+
+async function deleteHour(id) {
+  if (!confirm('Delete this hours entry?')) return;
+  const res = await fetch('/api/hours/' + id, { method: 'DELETE' });
+  if (res.ok) location.reload();
+  else alert('Failed to delete');
+}
+</script>
+
+<%- include('layout-foot') %>

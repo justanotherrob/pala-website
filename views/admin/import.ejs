@@ -1,0 +1,45 @@
+<%- include('layout-head', { pageTitle: 'Import / Export' }) %>
+
+<h1>Import / Export Gift Cards</h1>
+<p class="subtitle">Import from CSV or export all gift cards.</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  <div class="card">
+    <h2>Export</h2>
+    <p style="color:var(--mid);font-size:14px;margin-bottom:16px">Download all non-pending gift cards as CSV. Full codes are included in the export.</p>
+    <a href="/api/gift-cards/export" class="btn btn-primary btn-sm">Download CSV</a>
+  </div>
+
+  <div class="card">
+    <h2>Import CSV</h2>
+    <p style="color:var(--mid);font-size:14px;margin-bottom:16px">Upload a CSV with columns: GIFT CODE, INITIAL VALUE, REMAINING VALUE, PURCHASER EMAIL, RECIPIENT EMAIL, PURCHASE DATE, USAGE.</p>
+    <form id="importForm" enctype="multipart/form-data">
+      <input type="file" name="csv" accept=".csv" required style="margin-bottom:12px;font-size:14px">
+      <br>
+      <button type="submit" class="btn btn-primary btn-sm">Upload & Import</button>
+    </form>
+    <div id="importResult" style="margin-top:16px;display:none"></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('importForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const res = await fetch('/api/gift-cards/import', { method: 'POST', body: formData });
+  const data = await res.json();
+  const el = document.getElementById('importResult');
+  el.style.display = '';
+
+  if (data.success) {
+    el.innerHTML = '<div class="flash flash-success">Imported <strong>' + data.imported + '</strong> of ' + data.total + ' cards. ' + data.skipped + ' skipped.</div>';
+    if (data.errors && data.errors.length) {
+      el.innerHTML += '<div style="font-size:12px;color:var(--mid);margin-top:8px">' + data.errors.join('<br>') + '</div>';
+    }
+  } else {
+    el.innerHTML = '<div class="flash flash-error">' + (data.error || 'Import failed') + '</div>';
+  }
+});
+</script>
+
+<%- include('layout-foot') %>

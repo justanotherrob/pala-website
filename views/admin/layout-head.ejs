@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= typeof pageTitle !== 'undefined' ? pageTitle + ' | ' : '' %>Admin | Pala Pizza</title>
+<link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#FAF8F5;font-family:'Cabin',system-ui,sans-serif;color:#1a1a1a;line-height:1.6}
+:root{--olive:#636845;--cream:#FAF8F5;--warm:#F3EDE6;--charcoal:#1a1a1a;--mid:#5a5a5a}
+
+.admin-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:var(--charcoal);color:#fff;flex-wrap:wrap;gap:12px}
+.admin-nav-brand{font-size:14px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#fff;text-decoration:none}
+.admin-nav-links{display:flex;gap:24px;list-style:none;flex-wrap:wrap}
+.admin-nav-links a{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.6);text-decoration:none;transition:color .2s}
+.admin-nav-links a:hover,.admin-nav-links a.active{color:#fff}
+
+.admin-content{max-width:1000px;margin:0 auto;padding:32px 24px 80px}
+.admin-content h1{font-size:28px;font-weight:400;margin-bottom:8px}
+.admin-content .subtitle{color:var(--mid);font-size:15px;margin-bottom:32px}
+
+.card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.04);margin-bottom:20px}
+.card h2{font-size:18px;font-weight:500;margin-bottom:16px}
+
+.btn{display:inline-block;padding:10px 24px;font-family:'Cabin',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;border-radius:100px;border:none;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--olive);color:#fff}.btn-primary:hover{background:#7a7f5c}
+.btn-outline{border:1px solid var(--charcoal);color:var(--charcoal);background:transparent}.btn-outline:hover{background:var(--charcoal);color:#fff}
+.btn-danger{background:#c0392b;color:#fff}.btn-danger:hover{background:#a93226}
+.btn-sm{padding:6px 16px;font-size:11px}
+
+table.admin-table{width:100%;border-collapse:collapse;font-size:14px}
+table.admin-table th{text-align:left;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);padding:10px 12px;border-bottom:2px solid rgba(0,0,0,0.06)}
+table.admin-table td{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,0.04);vertical-align:middle}
+table.admin-table tr:hover{background:rgba(99,104,69,0.02)}
+
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--mid);margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;font-family:'Cabin',sans-serif;font-size:14px;padding:10px 14px;border:1px solid rgba(0,0,0,0.1);border-radius:8px;outline:none;transition:border-color .3s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--olive)}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase}
+.badge-active{background:rgba(99,104,69,0.1);color:var(--olive)}
+.badge-redeemed{background:rgba(0,0,0,0.06);color:var(--mid)}
+.badge-expired{background:rgba(192,57,43,0.1);color:#c0392b}
+.badge-pending{background:rgba(200,160,60,0.1);color:#8a6d20}
+
+.flash{padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:14px}
+.flash-success{background:rgba(99,104,69,0.1);color:var(--olive)}
+.flash-error{background:#fef6f6;color:#7a2020;border:1px solid #f0d0d0}
+
+.pagination{display:flex;gap:8px;margin-top:20px;justify-content:center}
+.pagination a,.pagination span{padding:6px 14px;border-radius:6px;font-size:13px;text-decoration:none;color:var(--mid)}
+.pagination a:hover{background:var(--warm)}
+.pagination .current{background:var(--olive);color:#fff}
+</style>
+</head>
+<body>
+<nav class="admin-nav">
+  <a href="/admin" class="admin-nav-brand">Pala Pizza Admin</a>
+  <ul class="admin-nav-links">
+    <li><a href="/admin/menu">Menu</a></li>
+    <li><a href="/admin/allergens">Allergens</a></li>
+    <li><a href="/admin/hours">Hours</a></li>
+    <li><a href="/admin/gift-cards">Gift Cards</a></li>
+    <li><a href="/admin/redeem">Redeem</a></li>
+    <li><a href="/admin/settings">Settings</a></li>
+    <li><a href="/" target="_blank">View Site</a></li>
+    <li><a href="/admin/logout">Logout</a></li>
+  </ul>
+</nav>
+<main class="admin-content">

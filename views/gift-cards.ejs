@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gift Cards | Pala Pizza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-system,sans-serif;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased}
+:root{--olive:#636845;--olive-light:#7a7f5c;--cream:#FAF8F5;--warm:#F3EDE6;--charcoal:#1a1a1a;--mid:#5a5a5a;--light:#999}
+
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:var(--olive);box-shadow:0 1px 0 rgba(0,0,0,0.08)}
+.nav-logo{height:32px;width:auto;filter:brightness(0) invert(1)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{font-size:12px;font-weight:400;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;color:rgba(250,248,245,0.75);transition:color .3s}
+.nav-links a:hover,.nav-links a.active{color:#fff}
+@media(max-width:600px){.nav{padding:14px 20px}.nav-links{gap:18px}.nav-links a{font-size:11px}}
+
+.gc-page{max-width:560px;margin:0 auto;padding:64px 24px 100px}
+.gc-page h1{font-family:'Cabin',system-ui,sans-serif;font-size:clamp(32px,5vw,44px);font-weight:400;text-align:center;margin-bottom:8px}
+.gc-page .subtitle{text-align:center;color:var(--mid);font-size:17px;margin-bottom:48px}
+
+/* Amount buttons */
+.amount-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.amount-btn{
+  padding:16px 8px;border:2px solid rgba(0,0,0,0.08);border-radius:12px;background:#fff;
+  font-family:'Cabin',sans-serif;font-size:20px;font-weight:500;color:var(--charcoal);
+  cursor:pointer;transition:all .2s;text-align:center;
+}
+.amount-btn:hover{border-color:var(--olive);background:rgba(99,104,69,0.04)}
+.amount-btn.selected{border-color:var(--olive);background:var(--olive);color:#fff}
+
+.custom-amount{margin-bottom:32px}
+.custom-amount label{font-size:13px;color:var(--mid);letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:8px}
+.custom-amount input{
+  width:100%;font-family:'Cabin',sans-serif;font-size:18px;padding:14px 16px;
+  border:2px solid rgba(0,0,0,0.08);border-radius:12px;background:#fff;outline:none;
+  transition:border-color .3s;
+}
+.custom-amount input:focus{border-color:var(--olive)}
+
+/* Toggle */
+.toggle-group{display:flex;gap:0;margin-bottom:8px;border-radius:12px;overflow:hidden;border:2px solid rgba(0,0,0,0.08)}
+.toggle-btn{
+  flex:1;padding:14px;font-family:'Cabin',sans-serif;font-size:14px;font-weight:500;
+  background:#fff;border:none;cursor:pointer;transition:all .2s;text-align:center;
+  letter-spacing:0.04em;
+}
+.toggle-btn.selected{background:var(--olive);color:#fff}
+.toggle-hint{font-size:13px;color:var(--light);margin-bottom:32px;text-align:center}
+
+/* Form fields */
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:13px;color:var(--mid);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
+.form-group input,.form-group textarea{
+  width:100%;font-family:'Cabin',sans-serif;font-size:15px;padding:12px 16px;
+  border:1px solid rgba(0,0,0,0.10);border-radius:10px;background:#fff;outline:none;
+  transition:border-color .3s;
+}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--olive)}
+.form-group textarea{resize:vertical;min-height:80px}
+
+.recipient-fields{display:none}
+.recipient-fields.visible{display:block}
+
+.section-divider{border:none;border-top:1px solid rgba(0,0,0,0.06);margin:32px 0}
+
+/* Buy button */
+.buy-btn{
+  width:100%;padding:16px;font-family:'Cabin',sans-serif;font-size:15px;font-weight:600;
+  letter-spacing:0.12em;text-transform:uppercase;border:none;border-radius:100px;
+  background:var(--olive);color:#fff;cursor:pointer;transition:all .3s;
+}
+.buy-btn:hover{background:var(--olive-light)}
+.buy-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* Error */
+.form-error{background:#fef6f6;border:1px solid #f0d0d0;border-radius:10px;padding:12px 16px;color:#7a2020;font-size:14px;margin-bottom:16px;display:none}
+.form-error.visible{display:block}
+
+/* Payment overlay */
+.payment-overlay{
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.6);
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.payment-overlay.visible{display:flex}
+.payment-modal{
+  background:#fff;border-radius:16px;width:90%;max-width:500px;max-height:90vh;
+  overflow-y:auto;position:relative;
+}
+.payment-close{
+  position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;
+  border:1px solid rgba(0,0,0,0.1);background:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:18px;z-index:10;
+}
+.payment-close:hover{background:var(--warm)}
+.payment-summary{padding:24px 24px 16px;border-bottom:1px solid rgba(0,0,0,0.06)}
+.payment-summary h3{font-family:'Cabin',sans-serif;font-size:18px;font-weight:400;margin-bottom:8px}
+.payment-summary .amount{font-size:28px;font-weight:600;color:var(--olive)}
+.payment-summary .for{font-size:14px;color:var(--mid);margin-top:4px}
+#stripe-checkout{min-height:300px;padding:16px}
+
+/* Processing/Confirmation states */
+.payment-state{display:none;padding:48px 24px;text-align:center}
+.payment-state.visible{display:block}
+.payment-state h3{font-family:'Cabin',sans-serif;font-size:22px;font-weight:400;margin-bottom:12px}
+.payment-state p{color:var(--mid);font-size:15px;line-height:1.6}
+.spinner{width:40px;height:40px;border:3px solid rgba(0,0,0,0.1);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.check-icon{width:48px;height:48px;color:var(--olive);margin:0 auto 16px}
+
+/* Footer */
+.footer{background:var(--charcoal);color:#ccc;padding:40px}
+.footer-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.footer-logo{height:28px;width:auto;filter:brightness(0) invert(1);opacity:0.7}
+.footer-links{display:flex;gap:28px}
+.footer-links a{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#888;text-decoration:none;transition:color .3s}
+.footer-links a:hover{color:#fff}
+@media(max-width:600px){.footer{padding:32px 24px}.footer-inner{flex-direction:column;align-items:flex-start;gap:20px}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/"><img src="/images/logo.png" alt="Pala Pizza" class="nav-logo"></a>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/gift-cards" class="active">Gift Cards</a></li>
+  </ul>
+</nav>
+
+<main class="gc-page">
+  <h1>Gift Cards</h1>
+  <p class="subtitle">Give the gift of pizza al taglio.</p>
+
+  <div class="form-error" id="formError"></div>
+
+  <!-- Amount -->
+  <div class="amount-grid">
+    <button class="amount-btn" data-amount="1500">&pound;15</button>
+    <button class="amount-btn selected" data-amount="2500">&pound;25</button>
+    <button class="amount-btn" data-amount="5000">&pound;50</button>
+    <button class="amount-btn" data-amount="7500">&pound;75</button>
+  </div>
+  <div class="custom-amount">
+    <label>Or enter a custom amount (&pound;15 &ndash; &pound;150)</label>
+    <input type="number" id="customAmount" min="15" max="150" step="1" placeholder="e.g. 40">
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- Who is it for -->
+  <div class="toggle-group">
+    <button class="toggle-btn selected" data-sendto="self">For Me</button>
+    <button class="toggle-btn" data-sendto="friend">For a Friend</button>
+  </div>
+  <p class="toggle-hint" id="toggleHint">We'll email you a printable gift card you can give in person.</p>
+
+  <hr class="section-divider">
+
+  <!-- Your details -->
+  <div class="form-group">
+    <label>Your Name</label>
+    <input type="text" id="purchaserName" required autocomplete="name">
+  </div>
+  <div class="form-group">
+    <label>Your Email</label>
+    <input type="email" id="purchaserEmail" required autocomplete="email">
+  </div>
+
+  <!-- Recipient details -->
+  <div class="recipient-fields" id="recipientFields">
+    <hr class="section-divider">
+    <div class="form-group">
+      <label>Recipient's Name</label>
+      <input type="text" id="recipientName" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Recipient's Email</label>
+      <input type="email" id="recipientEmail" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Personal Message (optional)</label>
+      <textarea id="personalMessage" maxlength="300" placeholder="e.g. Happy Birthday! Enjoy some pizza on me."></textarea>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <button class="buy-btn" id="buyBtn">Buy Gift Card</button>
+</main>
+
+<!-- Payment overlay -->
+<div class="payment-overlay" id="paymentOverlay">
+  <div class="payment-modal">
+    <button class="payment-close" id="paymentClose">&times;</button>
+
+    <div id="paymentCheckout">
+      <div class="payment-summary">
+        <h3>Pala Pizza Gift Card</h3>
+        <div class="amount" id="overlaySummaryAmount"></div>
+        <div class="for" id="overlaySummaryFor"></div>
+      </div>
+      <div id="stripe-checkout"></div>
+    </div>
+
+    <div class="payment-state" id="processingState">
+      <div class="spinner"></div>
+      <h3>Confirming your payment&hellip;</h3>
+      <p>This usually takes a few seconds.</p>
+    </div>
+
+    <div class="payment-state" id="confirmationState">
+      <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <h3 id="confirmTitle">Gift card sent!</h3>
+      <p id="confirmMessage"></p>
+    </div>
+
+    <div class="payment-state" id="errorState">
+      <h3>Something went wrong</h3>
+      <p>Your payment may still have been processed. Please check your email. If you don't receive anything within 10 minutes, email us at ciao@palapizza.co.uk.</p>
+      <button class="buy-btn" style="margin-top:20px;max-width:200px;margin-left:auto;margin-right:auto" onclick="document.getElementById('paymentOverlay').classList.remove('visible')">Close</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <a href="/"><img src="/images/logo.png" alt="Pala Pizza" class="footer-logo"></a>
+    <div class="footer-links">
+      <a href="<%= settings.maps_url || '#' %>" target="_blank" rel="noopener"><%= settings.address_line1 || '7 Jane Street' %></a>
+      <a href="<%= settings.instagram_url || '#' %>" target="_blank" rel="noopener">Instagram</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const STRIPE_KEY = '<%= stripeKey %>';
+
+let selectedAmount = 2500;
+let sendTo = 'self';
+let currentCheckout = null;
+
+// Amount buttons
+document.querySelectorAll('.amount-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedAmount = parseInt(btn.dataset.amount);
+    document.getElementById('customAmount').value = '';
+  });
+});
+
+document.getElementById('customAmount').addEventListener('input', function() {
+  const v = parseInt(this.value);
+  if (v >= 15 && v <= 150) {
+    selectedAmount = v * 100;
+    document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+  }
+});
+
+// Toggle
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    sendTo = btn.dataset.sendto;
+    const rf = document.getElementById('recipientFields');
+    const hint = document.getElementById('toggleHint');
+    if (sendTo === 'friend') {
+      rf.classList.add('visible');
+      hint.textContent = "We'll email the gift card directly to your friend.";
+    } else {
+      rf.classList.remove('visible');
+      hint.textContent = "We'll email you a printable gift card you can give in person.";
+    }
+  });
+});
+
+// Buy
+document.getElementById('buyBtn').addEventListener('click', async () => {
+  const errEl = document.getElementById('formError');
+  errEl.classList.remove('visible');
+
+  const purchaserName = document.getElementById('purchaserName').value.trim();
+  const purchaserEmail = document.getElementById('purchaserEmail').value.trim();
+
+  if (!purchaserName || !purchaserEmail) {
+    errEl.textContent = 'Please enter your name and email.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  if (!selectedAmount || selectedAmount < 1500 || selectedAmount > 15000) {
+    errEl.textContent = 'Please select an amount between \u00A315 and \u00A3150.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  const payload = {
+    amount: selectedAmount,
+    purchaserName,
+    purchaserEmail,
+    sendTo,
+    recipientName: null,
+    recipientEmail: null,
+    personalMessage: null,
+  };
+
+  if (sendTo === 'friend') {
+    payload.recipientName = document.getElementById('recipientName').value.trim();
+    payload.recipientEmail = document.getElementById('recipientEmail').value.trim();
+    payload.personalMessage = document.getElementById('personalMessage').value.trim();
+    if (!payload.recipientName || !payload.recipientEmail) {
+      errEl.textContent = "Please enter the recipient's name and email.";
+      errEl.classList.add('visible');
+      return;
+    }
+  }
+
+  const buyBtn = document.getElementById('buyBtn');
+  buyBtn.disabled = true;
+  buyBtn.textContent = 'Please wait\u2026';
+
+  try {
+    const res = await fetch('/gift-cards/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create checkout');
+
+    // Show overlay
+    const overlay = document.getElementById('paymentOverlay');
+    overlay.classList.add('visible');
+    document.getElementById('overlaySummaryAmount').textContent = '\u00A3' + (selectedAmount / 100).toFixed(0);
+    document.getElementById('overlaySummaryFor').textContent = sendTo === 'friend'
+      ? 'For ' + payload.recipientName
+      : 'For yourself';
+
+    // Show checkout, hide other states
+    document.getElementById('paymentCheckout').style.display = '';
+    document.getElementById('processingState').classList.remove('visible');
+    document.getElementById('confirmationState').classList.remove('visible');
+    document.getElementById('errorState').classList.remove('visible');
+
+    const stripe = Stripe(STRIPE_KEY);
+    currentCheckout = await stripe.initEmbeddedCheckout({
+      clientSecret: data.clientSecret,
+      onComplete: handlePaymentComplete,
+    });
+    currentCheckout.mount('#stripe-checkout');
+
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.add('visible');
+  } finally {
+    buyBtn.disabled = false;
+    buyBtn.textContent = 'Buy Gift Card';
+  }
+});
+
+async function handlePaymentComplete() {
+  document.getElementById('paymentCheckout').style.display = 'none';
+  document.getElementById('processingState').classList.add('visible');
+
+  try {
+    const sessionResult = await currentCheckout.session();
+    const sessionId = sessionResult.id;
+
+    let attempts = 0;
+    const maxAttempts = 15;
+
+    const poll = async () => {
+      attempts++;
+      const res = await fetch('/gift-cards/status?session_id=' + encodeURIComponent(sessionId));
+      const data = await res.json();
+
+      if (data.status === 'active') {
+        document.getElementById('processingState').classList.remove('visible');
+        document.getElementById('confirmationState').classList.add('visible');
+
+        const title = document.getElementById('confirmTitle');
+        const msg = document.getElementById('confirmMessage');
+
+        if (data.sendTo === 'friend') {
+          title.textContent = 'Gift card sent!';
+          msg.innerHTML = "We've emailed a \u00A3" + data.amount + " gift card to <strong>" + (data.recipientName || '') + "</strong>. Check your inbox for a receipt.";
+        } else {
+          title.textContent = 'Gift card ready!';
+          msg.innerHTML = "We've sent your \u00A3" + data.amount + " gift card to your email. Check your inbox \u2014 it's ready to print and give in person.";
+        }
+        return;
+      }
+
+      if (attempts < maxAttempts) {
+        setTimeout(poll, 2000);
+      } else {
+        document.getElementById('processingState').classList.remove('visible');
+        document.getElementById('confirmationState').classList.add('visible');
+        document.getElementById('confirmTitle').textContent = 'Payment received!';
+        document.getElementById('confirmMessage').textContent = "Your gift card is being processed. Check your email shortly \u2014 it should arrive within a few minutes.";
+      }
+    };
+
+    setTimeout(poll, 2000);
+  } catch (err) {
+    console.error('Error during completion:', err);
+    document.getElementById('processingState').classList.remove('visible');
+    document.getElementById('errorState').classList.add('visible');
+  }
+}
+
+// Close overlay
+document.getElementById('paymentClose').addEventListener('click', () => {
+  if (currentCheckout) {
+    try { currentCheckout.destroy(); } catch(e) {}
+    currentCheckout = null;
+  }
+  document.getElementById('paymentOverlay').classList.remove('visible');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<%- include('layout-head', { pageTitle: 'Settings' }) %>
+
+<h1>Site Settings</h1>
+<p class="subtitle">Edit text, links, and toggles that appear across the site.</p>
+
+<div class="card">
+  <table class="admin-table">
+    <thead><tr><th>Setting</th><th>Value</th><th></th></tr></thead>
+    <tbody>
+      <% settings.forEach(s => { %>
+      <tr>
+        <td>
+          <strong><%= s.label || s.key %></strong>
+          <div style="font-size:11px;color:var(--mid);font-family:monospace"><%= s.key %></div>
+        </td>
+        <td>
+          <input type="text" id="setting-<%= s.key %>" value="<%= s.value %>"
+                 style="font-family:'Cabin',sans-serif;font-size:13px;padding:8px 12px;border:1px solid rgba(0,0,0,0.1);border-radius:6px;width:100%;outline:none">
+        </td>
+        <td style="width:80px">
+          <button class="btn btn-primary btn-sm" onclick="saveSetting('<%= s.key %>')">Save</button>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+async function saveSetting(key) {
+  const value = document.getElementById('setting-' + key).value;
+  const res = await fetch('/api/settings/' + key, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ value }),
+  });
+  if (res.ok) {
+    const btn = event.target;
+    btn.textContent = 'Saved!';
+    setTimeout(() => btn.textContent = 'Save', 1500);
+  } else {
+    alert('Failed to save setting');
+  }
+}
+</script>
+
+<%- include('layout-foot') %>

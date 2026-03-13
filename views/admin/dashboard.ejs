@@ -1,0 +1,40 @@
+<%- include('layout-head', { pageTitle: 'Dashboard' }) %>
+
+<h1>Welcome, <%= userName %></h1>
+<p class="subtitle">Pala Pizza admin dashboard</p>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px">
+  <div class="card" style="text-align:center">
+    <div style="font-size:36px;font-weight:600;color:var(--olive)"><%= menuCount %></div>
+    <div style="font-size:13px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em">Menu Items</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div style="font-size:36px;font-weight:600;color:var(--olive)"><%= activeGiftCards %></div>
+    <div style="font-size:13px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em">Active Gift Cards</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div style="font-size:36px;font-weight:600;color:var(--olive)"><%= giftCardCount %></div>
+    <div style="font-size:13px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em">Total Gift Cards</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <a href="/admin/menu" class="card" style="text-decoration:none;color:inherit">
+    <h2>Manage Menu</h2>
+    <p style="color:var(--mid);font-size:14px">Add, edit, reorder menu items and set prices.</p>
+  </a>
+  <a href="/admin/allergens" class="card" style="text-decoration:none;color:inherit">
+    <h2>Allergen Matrix</h2>
+    <p style="color:var(--mid);font-size:14px">Update allergen info for each menu item.</p>
+  </a>
+  <a href="/admin/gift-cards" class="card" style="text-decoration:none;color:inherit">
+    <h2>Gift Cards</h2>
+    <p style="color:var(--mid);font-size:14px">View, search, and manage gift cards.</p>
+  </a>
+  <a href="/admin/redeem" class="card" style="text-decoration:none;color:inherit">
+    <h2>Redeem Gift Card</h2>
+    <p style="color:var(--mid);font-size:14px">Look up and redeem a gift card code.</p>
+  </a>
+</div>
+
+<%- include('layout-foot') %>

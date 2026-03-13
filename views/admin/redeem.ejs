@@ -1,0 +1,163 @@
+<%- include('layout-head', { pageTitle: 'Redeem' }) %>
+
+<h1>Redeem Gift Card</h1>
+<p class="subtitle">Enter or scan a gift card code to redeem.</p>
+
+<div class="card" style="margin-bottom:24px">
+  <form method="GET" action="/admin/redeem" style="display:flex;gap:12px;align-items:end">
+    <div class="form-group" style="margin-bottom:0;flex:1">
+      <label>Gift Card Code</label>
+      <input type="text" name="code" value="<%= code %>" placeholder="Enter code..." style="font-family:monospace;font-size:18px;letter-spacing:2px;text-transform:uppercase" autofocus>
+    </div>
+    <button type="submit" class="btn btn-primary">Look Up</button>
+  </form>
+</div>
+
+<% if (code && !card) { %>
+<div class="flash flash-error">Gift card not found for code: <strong><%= code %></strong></div>
+<% } %>
+
+<% if (card) { %>
+
+<% const isExpired = card.expires_at && new Date(card.expires_at) < new Date(); %>
+
+<% if (isExpired && card.status !== 'redeemed') { %>
+<div style="background:#fef6f6;border:1px solid #f0d0d0;border-radius:12px;padding:16px;margin-bottom:20px;color:#7a2020;font-size:14px">
+  <strong>This gift card has expired.</strong> It can still be redeemed at your discretion.
+</div>
+<% } %>
+
+<div class="card">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+    <div>
+      <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Status</div>
+      <span class="badge badge-<%= card.status %>" style="font-size:14px;padding:6px 16px"><%= card.status %></span>
+    </div>
+    <div>
+      <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Code</div>
+      <div style="font-family:monospace;font-size:18px;letter-spacing:2px"><%= card.code %></div>
+    </div>
+    <div>
+      <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Purchaser</div>
+      <div><%= card.purchaser_name || '' %></div>
+      <div style="font-size:13px;color:var(--mid)"><%= card.purchaser_email || '' %></div>
+    </div>
+    <div>
+      <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Recipient</div>
+      <div><%= card.send_to === 'friend' ? (card.recipient_name || '') : 'Self' %></div>
+      <% if (card.send_to === 'friend') { %>
+      <div style="font-size:13px;color:var(--mid)"><%= card.recipient_email || '' %></div>
+      <% } %>
+    </div>
+    <div>
+      <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Purchased</div>
+      <div><%= card.purchased_at ? new Date(card.purchased_at).toLocaleDateString('en-GB') : 'N/A' %></div>
+    </div>
+    <div>
+      <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Expires</div>
+      <div><%= card.expires_at ? new Date(card.expires_at).toLocaleDateString('en-GB') : 'N/A' %></div>
+    </div>
+  </div>
+
+  <!-- Balance -->
+  <div style="text-align:center;padding:24px 0;border-top:1px solid rgba(0,0,0,0.06);border-bottom:1px solid rgba(0,0,0,0.06);margin-bottom:24px">
+    <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px">Balance</div>
+    <div id="balanceDisplay" style="font-size:48px;font-weight:600;color:var(--olive)">&pound;<%= (card.balance / 100).toFixed(2) %></div>
+    <div style="font-size:13px;color:var(--mid);margin-top:4px">of &pound;<%= (card.initial_amount / 100).toFixed(2) %> original</div>
+  </div>
+
+  <% if (card.balance > 0 && (card.status === 'active' || card.status === 'expired')) { %>
+  <!-- Full redeem -->
+  <button class="btn btn-primary" style="width:100%;padding:16px;font-size:15px;margin-bottom:16px" onclick="redeemAmount(<%= card.balance %>)">
+    Redeem Full Balance &mdash; &pound;<%= (card.balance / 100).toFixed(2) %>
+  </button>
+
+  <div style="text-align:center;color:var(--mid);font-size:13px;margin-bottom:16px">or enter a custom amount</div>
+
+  <!-- Custom redeem -->
+  <div style="display:flex;gap:12px">
+    <input type="number" id="customRedeem" min="0.01" max="<%= (card.balance / 100).toFixed(2) %>" step="0.01" placeholder="e.g. 12.50"
+           style="flex:1;font-family:'Cabin',sans-serif;font-size:16px;padding:12px 16px;border:1px solid rgba(0,0,0,0.1);border-radius:10px;outline:none">
+    <button class="btn btn-outline" onclick="redeemCustom()">Redeem</button>
+  </div>
+  <% } %>
+</div>
+
+<!-- Transaction history -->
+<% if (transactions.length > 0) { %>
+<div class="card">
+  <h2>Transaction History</h2>
+  <table class="admin-table">
+    <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th></tr></thead>
+    <tbody>
+      <% transactions.forEach(t => { %>
+      <tr>
+        <td><%= new Date(t.created_at).toLocaleString('en-GB') %></td>
+        <td><span class="badge badge-<%= t.type === 'purchase' ? 'active' : t.type === 'redemption' ? 'redeemed' : 'pending' %>"><%= t.type %></span></td>
+        <td>&pound;<%= (t.amount / 100).toFixed(2) %></td>
+        <td style="color:var(--mid);font-size:13px"><%= t.note || '' %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+
+<!-- Resend emails -->
+<div class="card">
+  <h2>Resend Emails</h2>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <button class="btn btn-outline btn-sm" onclick="resendEmail('recipient')">Resend Gift Card Email</button>
+    <% if (card.send_to === 'friend') { %>
+    <button class="btn btn-outline btn-sm" onclick="resendEmail('purchaser')">Resend Purchase Receipt</button>
+    <% } %>
+  </div>
+</div>
+
+<script>
+const cardCode = '<%= card.code %>';
+const isExpired = <%= isExpired ? 'true' : 'false' %>;
+
+async function redeemAmount(pence) {
+  const amountStr = '\u00A3' + (pence / 100).toFixed(2);
+  const expWarning = isExpired ? 'This gift card has expired. ' : '';
+  if (!confirm(expWarning + 'Redeem ' + amountStr + '?')) return;
+
+  const res = await fetch('/api/gift-cards/' + encodeURIComponent(cardCode) + '/redeem', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount: pence }),
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('balanceDisplay').textContent = data.balanceFormatted;
+    alert('Redeemed ' + amountStr + '. New balance: ' + data.balanceFormatted);
+    location.reload();
+  } else {
+    alert('Error: ' + (data.error || 'Failed to redeem'));
+  }
+}
+
+function redeemCustom() {
+  const input = document.getElementById('customRedeem');
+  const amount = parseFloat(input.value);
+  if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount'); return; }
+  redeemAmount(Math.round(amount * 100));
+}
+
+async function resendEmail(type) {
+  const endpoint = type === 'purchaser' ? 'resend-purchaser' : 'resend-recipient';
+  if (!confirm('Resend ' + type + ' email?')) return;
+  const res = await fetch('/api/gift-cards/<%= card.id %>/' + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const data = await res.json();
+  if (data.success) alert('Email sent to ' + data.sentTo);
+  else alert('Error: ' + (data.error || 'Failed to send'));
+}
+</script>
+
+<% } %>
+
+<%- include('layout-foot') %>
