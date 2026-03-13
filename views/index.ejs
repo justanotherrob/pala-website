@@ -232,14 +232,29 @@ body {
     <img src="/images/logoblack.png" alt="Pala" class="menu-logo">
     <div class="intro-title">Roman Style Pizza</div>
 
-    <% if (menuItems.length === 0) { %>
+    <% const pizzaItems = menuItems.filter(i => i.category === 'pizza' || !i.category); %>
+    <% const dessertItems = menuItems.filter(i => i.category === 'dessert'); %>
+
+    <% if (pizzaItems.length === 0 && dessertItems.length === 0) { %>
       <p class="menu-empty">Menu coming soon &mdash; pop in to see what's fresh.</p>
     <% } else { %>
-      <% menuItems.forEach(item => { %>
+
+      <%/* Pizza items — names and tags only, shared price at the end */ %>
+      <% pizzaItems.forEach(item => { %>
+        <div class="item"><%= item.name %></div>
+        <% if (item.tag) { %><div class="note"><%= item.tag %></div><% } %>
+      <% }) %>
+      <% if (pizzaItems.length > 0 && settings.pizza_price_label) { %>
+        <div class="price price--row"><%= settings.pizza_price_label %></div>
+      <% } %>
+
+      <%/* Dessert items — each with its own price */ %>
+      <% dessertItems.forEach(item => { %>
         <div class="item"><%= item.name %></div>
         <% if (item.tag) { %><div class="note"><%= item.tag %></div><% } %>
         <% if (item.price) { %><div class="price price--row">&pound;<%= (item.price / 100).toFixed(2) %></div><% } %>
       <% }) %>
+
     <% } %>
   </div>
 </main>

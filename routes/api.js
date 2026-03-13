@@ -15,20 +15,21 @@ router.use(requireAuth);
 
 // POST /api/menu — Create
 router.post('/menu', async (req, res) => {
-  const { name, tag, price } = req.body;
+  const { name, tag, price, category } = req.body;
   if (!name) return res.status(400).json({ error: 'Name is required' });
 
-  const maxOrder = await db.get('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM menu_items');
+  const cat = category || 'pizza';
+  const maxOrder = await db.get('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM menu_items WHERE category = $1', [cat]);
   await db.run(
-    'INSERT INTO menu_items (name, tag, price, sort_order) VALUES ($1, $2, $3, $4)',
-    [name, tag || null, price || null, maxOrder.next]
+    'INSERT INTO menu_items (name, tag, price, category, sort_order) VALUES ($1, $2, $3, $4, $5)',
+    [name, tag || null, price || null, cat, maxOrder.next]
   );
   res.json({ success: true });
 });
 
 // PUT /api/menu/:id — Update
 router.put('/menu/:id', async (req, res) => {
-  const { name, tag, price, sort_order, visible } = req.body;
+  const { name, tag, price, category, sort_order, visible } = req.body;
   const item = await db.get('SELECT id FROM menu_items WHERE id = $1', [req.params.id]);
   if (!item) return res.status(404).json({ error: 'Not found' });
 
@@ -39,6 +40,7 @@ router.put('/menu/:id', async (req, res) => {
   if (name !== undefined) { updates.push(`name = $${idx++}`); params.push(name); }
   if (tag !== undefined) { updates.push(`tag = $${idx++}`); params.push(tag || null); }
   if (price !== undefined) { updates.push(`price = $${idx++}`); params.push(price || null); }
+  if (category !== undefined) { updates.push(`category = $${idx++}`); params.push(category); }
   if (sort_order !== undefined) { updates.push(`sort_order = $${idx++}`); params.push(sort_order); }
   if (visible !== undefined) { updates.push(`visible = $${idx++}`); params.push(visible); }
 
@@ -47,6 +49,37 @@ router.put('/menu/:id', async (req, res) => {
   updates.push(`updated_at = NOW()`);
   params.push(req.params.id);
   await db.run(`UPDATE menu_items SET ${updates.join(', ')} WHERE id = $${idx}`, params);
+  res.json({ success: true });
+});
+
+// POST /api/menu/:id/move — Move item up or down
+router.post('/menu/:id/move', async (req, res) => {
+  const { direction } = req.body; // 'up' or 'down'
+  if (!['up', 'down'].includes(direction)) return res.status(400).json({ error: 'Invalid direction' });
+
+  const item = await db.get('SELECT * FROM menu_items WHERE id = $1', [req.params.id]);
+  if (!item) return res.status(404).json({ error: 'Not found' });
+
+  // Find the adjacent item in the same category
+  let neighbour;
+  if (direction === 'up') {
+    neighbour = await db.get(
+      'SELECT * FROM menu_items WHERE category = $1 AND sort_order < $2 ORDER BY sort_order DESC LIMIT 1',
+      [item.category, item.sort_order]
+    );
+  } else {
+    neighbour = await db.get(
+      'SELECT * FROM menu_items WHERE category = $1 AND sort_order > $2 ORDER BY sort_order ASC LIMIT 1',
+      [item.category, item.sort_order]
+    );
+  }
+
+  if (!neighbour) return res.json({ success: true }); // Already at top/bottom
+
+  // Swap sort_order values
+  await db.run('UPDATE menu_items SET sort_order = $1, updated_at = NOW() WHERE id = $2', [neighbour.sort_order, item.id]);
+  await db.run('UPDATE menu_items SET sort_order = $1, updated_at = NOW() WHERE id = $2', [item.sort_order, neighbour.id]);
+
   res.json({ success: true });
 });
 

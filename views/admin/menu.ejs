@@ -3,7 +3,7 @@
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
   <div>
     <h1>Menu Items</h1>
-    <p class="subtitle">Add, edit, and reorder your menu. Prices are in pence (e.g. 450 = &pound;4.50).</p>
+    <p class="subtitle">Manage your pizza slices and desserts separately. Use arrows to reorder.</p>
   </div>
   <button class="btn btn-primary" onclick="showAddForm()">+ Add Item</button>
 </div>
@@ -12,42 +12,104 @@
   <h2 id="formTitle">Add Menu Item</h2>
   <form id="itemForm" onsubmit="saveItem(event)">
     <input type="hidden" id="editId" value="">
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;gap:12px;align-items:end">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 80px;gap:12px;align-items:end">
       <div class="form-group" style="margin-bottom:0">
         <label>Name</label>
         <input type="text" id="itemName" required>
       </div>
       <div class="form-group" style="margin-bottom:0">
         <label>Tag (optional)</label>
-        <input type="text" id="itemTag" placeholder="e.g. V, VG">
+        <input type="text" id="itemTag" placeholder="e.g. v, vg">
       </div>
       <div class="form-group" style="margin-bottom:0">
         <label>Price (pence)</label>
-        <input type="number" id="itemPrice" placeholder="450">
+        <input type="number" id="itemPrice" placeholder="550">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Category</label>
+        <select id="itemCategory">
+          <option value="pizza">Pizza</option>
+          <option value="dessert">Dessert</option>
+        </select>
       </div>
       <div>
         <button type="submit" class="btn btn-primary btn-sm" style="width:100%">Save</button>
       </div>
     </div>
+    <p style="font-size:12px;color:var(--mid);margin-top:8px">
+      <strong>Pizza:</strong> Individual prices are ignored &mdash; the shared price label below is shown once for all slices.<br>
+      <strong>Dessert:</strong> Each dessert shows its own price individually.
+    </p>
   </form>
 </div>
 
-<div class="card">
+<!-- Pizza section -->
+<div class="card" style="margin-bottom:24px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <h2 style="margin:0">Pizza Slices</h2>
+    <div style="display:flex;align-items:center;gap:12px">
+      <label style="font-size:13px;color:var(--mid)">Price label:</label>
+      <input type="text" id="pizzaPriceLabel" value="<%= settings.pizza_price_label || '£6 / SLICE' %>"
+             style="width:160px;font-size:14px;padding:6px 10px;border:1px solid rgba(0,0,0,0.1);border-radius:6px"
+             onchange="updatePriceLabel(this.value)">
+    </div>
+  </div>
   <table class="admin-table">
     <thead>
       <tr>
-        <th>Order</th>
+        <th style="width:80px">Order</th>
+        <th>Name</th>
+        <th>Tag</th>
+        <th>Visible</th>
+        <th style="width:160px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% const pizzaItems = items.filter(i => i.category === 'pizza' || !i.category); %>
+      <% pizzaItems.forEach((item, i) => { %>
+      <tr id="row-<%= item.id %>">
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="moveItem(<%= item.id %>, 'up')" <%= i === 0 ? 'disabled' : '' %> title="Move up">&uarr;</button>
+          <button class="btn btn-outline btn-sm" onclick="moveItem(<%= item.id %>, 'down')" <%= i === pizzaItems.length - 1 ? 'disabled' : '' %> title="Move down">&darr;</button>
+        </td>
+        <td><strong><%= item.name %></strong></td>
+        <td><%= item.tag || '' %></td>
+        <td><%= item.visible ? 'Yes' : 'No' %></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick='editItem(<%= JSON.stringify(item) %>)'>Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem(<%= item.id %>)">Delete</button>
+        </td>
+      </tr>
+      <% }) %>
+      <% if (pizzaItems.length === 0) { %>
+      <tr><td colspan="5" style="text-align:center;color:var(--mid);padding:24px">No pizza items yet.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Dessert section -->
+<div class="card">
+  <h2 style="margin-bottom:16px">Desserts</h2>
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th style="width:80px">Order</th>
         <th>Name</th>
         <th>Tag</th>
         <th>Price</th>
         <th>Visible</th>
-        <th>Actions</th>
+        <th style="width:160px">Actions</th>
       </tr>
     </thead>
-    <tbody id="menuBody">
-      <% items.forEach((item, i) => { %>
+    <tbody>
+      <% const dessertItems = items.filter(i => i.category === 'dessert'); %>
+      <% dessertItems.forEach((item, i) => { %>
       <tr id="row-<%= item.id %>">
-        <td><%= item.sort_order %></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="moveItem(<%= item.id %>, 'up')" <%= i === 0 ? 'disabled' : '' %> title="Move up">&uarr;</button>
+          <button class="btn btn-outline btn-sm" onclick="moveItem(<%= item.id %>, 'down')" <%= i === dessertItems.length - 1 ? 'disabled' : '' %> title="Move down">&darr;</button>
+        </td>
         <td><strong><%= item.name %></strong></td>
         <td><%= item.tag || '' %></td>
         <td><%= item.price ? '&pound;' + (item.price / 100).toFixed(2) : '' %></td>
@@ -58,8 +120,8 @@
         </td>
       </tr>
       <% }) %>
-      <% if (items.length === 0) { %>
-      <tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px">No menu items yet. Click "Add Item" to get started.</td></tr>
+      <% if (dessertItems.length === 0) { %>
+      <tr><td colspan="6" style="text-align:center;color:var(--mid);padding:24px">No dessert items yet.</td></tr>
       <% } %>
     </tbody>
   </table>
@@ -73,6 +135,7 @@ function showAddForm() {
   document.getElementById('itemName').value = '';
   document.getElementById('itemTag').value = '';
   document.getElementById('itemPrice').value = '';
+  document.getElementById('itemCategory').value = 'pizza';
   document.getElementById('itemName').focus();
 }
 
@@ -83,6 +146,7 @@ function editItem(item) {
   document.getElementById('itemName').value = item.name;
   document.getElementById('itemTag').value = item.tag || '';
   document.getElementById('itemPrice').value = item.price || '';
+  document.getElementById('itemCategory').value = item.category || 'pizza';
   document.getElementById('itemName').focus();
 }
 
@@ -93,6 +157,7 @@ async function saveItem(e) {
     name: document.getElementById('itemName').value,
     tag: document.getElementById('itemTag').value,
     price: parseInt(document.getElementById('itemPrice').value) || null,
+    category: document.getElementById('itemCategory').value,
   };
 
   const url = id ? '/api/menu/' + id : '/api/menu';
@@ -117,6 +182,25 @@ async function deleteItem(id) {
   const res = await fetch('/api/menu/' + id, { method: 'DELETE' });
   if (res.ok) location.reload();
   else alert('Failed to delete');
+}
+
+async function moveItem(id, direction) {
+  const res = await fetch('/api/menu/' + id + '/move', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ direction }),
+  });
+  if (res.ok) location.reload();
+  else alert('Failed to move item');
+}
+
+async function updatePriceLabel(value) {
+  const res = await fetch('/api/settings/pizza_price_label', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ value }),
+  });
+  if (!res.ok) alert('Failed to update price label');
 }
 </script>
 

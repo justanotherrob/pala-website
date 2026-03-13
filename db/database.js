@@ -39,6 +39,7 @@ async function initDatabase() {
       name TEXT NOT NULL,
       tag TEXT,
       price INTEGER,
+      category TEXT NOT NULL DEFAULT 'pizza',
       sort_order INTEGER DEFAULT 0,
       visible BOOLEAN DEFAULT true,
       created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -111,6 +112,14 @@ async function initDatabase() {
     );
   `);
 
+  // Migrations — add columns if they don't exist (safe to re-run)
+  await pool.query(`
+    DO $$ BEGIN
+      ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'pizza';
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$;
+  `);
+
   // Indexes
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_gift_cards_code ON gift_cards(code);
@@ -170,6 +179,7 @@ async function initDatabase() {
       { key: 'email_address', value: 'ciao@palapizza.co.uk', label: 'Contact Email' },
       { key: 'email_subject', value: 'Website order/Query', label: 'Contact Email Subject' },
       { key: 'gift_cards_enabled', value: 'true', label: 'Gift Cards Enabled' },
+      { key: 'pizza_price_label', value: '£6 / SLICE', label: 'Pizza Price Label (shown once below all slices)' },
     ];
     for (const s of defaults) {
       await pool.query(
@@ -178,6 +188,12 @@ async function initDatabase() {
       );
     }
   }
+
+  // Ensure pizza_price_label exists (for existing databases)
+  await pool.query(
+    `INSERT INTO site_settings (key, value, label) VALUES ('pizza_price_label', '£6 / SLICE', 'Pizza Price Label (shown once below all slices)')
+     ON CONFLICT (key) DO NOTHING`
+  );
 
   console.log('Database initialized');
 }

@@ -45,8 +45,11 @@ router.get('/', async (req, res) => {
 
 // Menu management
 router.get('/menu', async (req, res) => {
-  const items = await db.all('SELECT * FROM menu_items ORDER BY sort_order, id');
-  res.render('admin/menu', { items });
+  const settings = {};
+  const rows = await db.all('SELECT key, value FROM site_settings');
+  for (const row of rows) settings[row.key] = row.value;
+  const items = await db.all("SELECT * FROM menu_items ORDER BY CASE WHEN category = 'pizza' THEN 0 WHEN category = 'dessert' THEN 1 ELSE 2 END, sort_order, id");
+  res.render('admin/menu', { items, settings });
 });
 
 // Allergen management

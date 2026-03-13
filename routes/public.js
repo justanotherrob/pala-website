@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
   try {
     const settings = await getSettings();
     const hours = await db.all('SELECT * FROM opening_hours ORDER BY sort_order');
-    const menuItems = await db.all('SELECT * FROM menu_items WHERE visible = true ORDER BY sort_order, id');
+    const menuItems = await db.all("SELECT * FROM menu_items WHERE visible = true ORDER BY CASE WHEN category = 'pizza' THEN 0 WHEN category = 'dessert' THEN 1 ELSE 2 END, sort_order, id");
     const stripeKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
 
     res.render('index', { settings, hours, menuItems, stripeKey });
