@@ -9,17 +9,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://js.stripe.com/v3/"></script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-system,sans-serif;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased}
-:root{--olive:#636845;--olive-light:#7a7f5c;--cream:#FAF8F5;--warm:#F3EDE6;--charcoal:#1a1a1a;--mid:#5a5a5a;--light:#999}
+body{margin:0;padding:0;background:#F7F5F3;color:#000;font-family:'Cabin',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+:root{--olive:#686A49;--olive-light:#7a7f5c;--cream:#F7F5F3;--warm:#F3EDE6;--charcoal:#1a1a1a;--mid:#5a5a5a;--light:#999}
 
-/* Nav — olive bar, matching allergens page */
-.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:var(--olive);box-shadow:0 1px 0 rgba(0,0,0,0.08)}
+/* Nav — simple olive bar */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:var(--olive)}
 .nav-logo{height:32px;width:auto;filter:brightness(0) invert(1)}
-.nav-links{display:flex;gap:28px;list-style:none}
-.nav-links a{font-size:12px;font-weight:400;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;color:rgba(250,248,245,0.75);transition:color .3s}
-.nav-links a:hover,.nav-links a.active{color:#fff}
+.nav-links{display:flex;gap:28px;list-style:none;margin:0;padding:0}
+.nav-links a{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;color:rgba(247,245,243,0.75);font-family:Arial,Helvetica,sans-serif;transition:color .3s}
+.nav-links a:hover,.nav-links a.active{color:#F7F5F3}
 @media(max-width:600px){.nav{padding:14px 20px}.nav-links{gap:18px}.nav-links a{font-size:11px}}
 
 .gc-page{max-width:560px;margin:0 auto;padding:64px 24px 100px}
@@ -116,14 +114,10 @@ body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-syste
 @keyframes spin{to{transform:rotate(360deg)}}
 .check-icon{width:48px;height:48px;color:var(--olive);margin:0 auto 16px}
 
-/* Footer — matches original */
-.footer{background:var(--charcoal);color:#ccc;padding:40px}
-.footer-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
-.footer-logo{height:28px;width:auto;filter:brightness(0) invert(1);opacity:0.7}
-.footer-links{display:flex;gap:28px}
-.footer-links a{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#888;text-decoration:none;transition:color .3s}
-.footer-links a:hover{color:#fff}
-@media(max-width:600px){.footer{padding:32px 24px}.footer-inner{flex-direction:column;align-items:flex-start;gap:20px}}
+/* Footer — matches live site */
+.site-footer{background:#686A49;color:#F7F5F3;text-align:center;padding:24px 16px;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif}
+.site-footer a{color:#F7F5F3;text-decoration:none}
+.site-footer a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -232,14 +226,14 @@ body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-syste
   </div>
 </div>
 
-<footer class="footer">
-  <div class="footer-inner">
-    <a href="/"><img src="/images/logo.png" alt="Pala Pizza" class="footer-logo"></a>
-    <div class="footer-links">
-      <a href="<%= settings.maps_url || '#' %>" target="_blank" rel="noopener"><%= settings.address_line1 || '7 Jane Street' %></a>
-      <a href="<%= settings.instagram_url || '#' %>" target="_blank" rel="noopener">Instagram</a>
-    </div>
-  </div>
+<footer class="site-footer">
+  <a href="<%= settings.maps_url || 'https://maps.app.goo.gl/refCJDhQGju6NiAx9' %>" target="_blank" rel="noopener">
+    <%= settings.address_line1 || '7 Jane Street' %> | <%= settings.address_line2 || 'Leith' %>
+  </a>
+  <br><br>
+  <a href="<%= settings.instagram_url || 'https://instagram.com/pala.edin' %>" target="_blank" rel="noopener">
+    @pala.edin | Instagram
+  </a>
 </footer>
 
 <script>
