@@ -120,24 +120,36 @@ body{
 .menu-empty{font-size:16px;color:var(--light);padding:40px 0}
 @media(max-width:600px){.menu-inner{padding:64px 20px}.menu-card{padding:40px 24px 48px}}
 
+/* Gift card banner */
+.gc-banner{background:var(--cream);text-align:center;padding:80px 40px}
+.gc-banner-inner{max-width:480px;margin:0 auto}
+.gc-banner-label{font-size:12px;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:var(--olive);margin-bottom:16px}
+.gc-banner-heading{font-family:'Cabin',system-ui,sans-serif;font-size:clamp(28px,4vw,40px);font-weight:400;line-height:1.15;margin-bottom:12px}
+.gc-banner-desc{font-size:16px;color:var(--mid);line-height:1.7;margin-bottom:28px}
+.gc-btn{
+  display:inline-block;padding:14px 36px;
+  font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;
+  text-decoration:none;border-radius:100px;
+  background:var(--olive);color:var(--cream);transition:background .3s;
+}
+.gc-btn:hover{background:var(--olive-light)}
+@media(max-width:600px){.gc-banner{padding:56px 24px}}
+
 /* CTA Row */
 .cta-row{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .cta-block{padding:80px 48px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .cta-block:first-child{background:var(--cream)}
-.cta-block:nth-child(2){background:var(--olive);color:var(--cream)}
-.cta-block:nth-child(3){background:var(--charcoal);color:var(--cream)}
+.cta-block:last-child{background:var(--olive);color:var(--cream)}
 .cta-icon{width:48px;height:48px;margin-bottom:20px;opacity:0.7}
-.cta-block:nth-child(2) .cta-icon,.cta-block:nth-child(3) .cta-icon{opacity:0.6}
+.cta-block:last-child .cta-icon{opacity:0.6}
 .cta-heading{font-family:'Cabin',system-ui,sans-serif;font-size:24px;font-weight:400;margin-bottom:12px}
 .cta-desc{font-size:15px;line-height:1.7;max-width:300px;margin-bottom:24px;color:var(--mid)}
-.cta-block:nth-child(2) .cta-desc,.cta-block:nth-child(3) .cta-desc{color:rgba(250,248,245,0.7)}
+.cta-block:last-child .cta-desc{color:rgba(250,248,245,0.7)}
 .cta-btn{display:inline-block;padding:13px 32px;font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;text-decoration:none;border-radius:100px;transition:all .3s}
 .cta-btn--outline{border:1px solid var(--charcoal);color:var(--charcoal)}
 .cta-btn--outline:hover{background:var(--charcoal);color:var(--cream)}
 .cta-btn--white{border:1px solid rgba(250,248,245,0.5);color:var(--cream)}
 .cta-btn--white:hover{background:var(--cream);color:var(--olive)}
-.cta-btn--cream{border:1px solid rgba(250,248,245,0.5);color:var(--cream)}
-.cta-btn--cream:hover{background:var(--cream);color:var(--charcoal)}
 @media(max-width:700px){.cta-row{grid-template-columns:1fr}.cta-block{padding:56px 32px}}
 
 /* Footer */
@@ -205,7 +217,7 @@ body{
   <p class="section-label">About</p>
   <h2 class="section-heading">The Art of <em style="font-family:'Cabin',system-ui,sans-serif;font-style:italic">al Taglio</em></h2>
   <p class="section-sub" style="margin:0 auto;max-width:560px">
-    <%= settings.about_text || 'Pizza al taglio — Roman-style pizza baked in long trays, crisp on the outside, light and airy within.' %>
+    <%= settings.about_text || 'Pizza al taglio \u2014 Roman-style pizza baked in long trays, crisp on the outside, light and airy within. We make ours fresh at 7 Jane Street using slow-fermented dough and seasonal toppings. Walk in, pick your slice, and we cut it to order.' %>
   </p>
 </section>
 
@@ -233,6 +245,18 @@ body{
   </div>
 </section>
 
+<!-- Gift Card Banner -->
+<% if (settings.gift_cards_enabled === 'true') { %>
+<section class="gc-banner fade-in">
+  <div class="gc-banner-inner">
+    <p class="gc-banner-label">Gift Cards</p>
+    <h2 class="gc-banner-heading">Give the Gift of Pizza</h2>
+    <p class="gc-banner-desc">Buy a Pala Pizza gift card for yourself or send one to a friend. Redeemable for anything on our menu.</p>
+    <a href="/gift-cards" class="gc-btn">Buy a Gift Card</a>
+  </div>
+</section>
+<% } %>
+
 <!-- CTA Row -->
 <section class="cta-row" id="contact">
   <div class="cta-block fade-in">
@@ -252,16 +276,6 @@ body{
     <p class="cta-desc">Walk in for slices or email us about full trays and advance orders for your next event.</p>
     <a href="#" id="emailLink" class="cta-btn cta-btn--white">Get In Touch</a>
   </div>
-  <% if (settings.gift_cards_enabled === 'true') { %>
-  <div class="cta-block fade-in">
-    <svg class="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-      <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-    </svg>
-    <h3 class="cta-heading">Gift Cards</h3>
-    <p class="cta-desc">Give the gift of pizza. Buy a Pala Pizza gift card for yourself or send one to a friend.</p>
-    <a href="/gift-cards" class="cta-btn cta-btn--cream">Buy Gift Card</a>
-  </div>
-  <% } %>
 </section>
 
 <!-- Footer -->

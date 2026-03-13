@@ -10,19 +10,27 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-system,sans-serif;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased}
-:root{--olive:#636845;--cream:#FAF8F5;--mid:#5a5a5a}
+:root{--olive:#636845;--olive-light:#7a7f5c;--cream:#FAF8F5;--warm:#F3EDE6;--charcoal:#1a1a1a;--mid:#5a5a5a}
+
 .nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:var(--olive);box-shadow:0 1px 0 rgba(0,0,0,0.08)}
 .nav-logo{height:32px;width:auto;filter:brightness(0) invert(1)}
 .nav-links{display:flex;gap:28px;list-style:none}
 .nav-links a{font-size:12px;font-weight:400;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;color:rgba(250,248,245,0.75);transition:color .3s}
 .nav-links a:hover{color:#fff}
+@media(max-width:600px){.nav{padding:14px 20px}.nav-links{gap:18px}.nav-links a{font-size:11px}}
+
 .success-page{max-width:500px;margin:0 auto;padding:100px 24px;text-align:center}
 .check-icon{width:56px;height:56px;color:var(--olive);margin:0 auto 20px}
 .success-page h1{font-family:'Cabin',sans-serif;font-size:32px;font-weight:400;margin-bottom:16px}
 .success-page p{color:var(--mid);font-size:16px;line-height:1.7;margin-bottom:12px}
-.success-page strong{color:#1a1a1a}
-.home-link{display:inline-block;margin-top:32px;padding:13px 32px;font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;text-decoration:none;border-radius:100px;border:1px solid #1a1a1a;color:#1a1a1a;transition:all .3s}
-.home-link:hover{background:#1a1a1a;color:var(--cream)}
+.success-page strong{color:var(--charcoal)}
+.home-link{
+  display:inline-block;margin-top:32px;padding:13px 32px;
+  font-size:12px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;
+  text-decoration:none;border-radius:100px;
+  border:1px solid var(--charcoal);color:var(--charcoal);transition:all .3s;
+}
+.home-link:hover{background:var(--charcoal);color:var(--cream)}
 </style>
 </head>
 <body>

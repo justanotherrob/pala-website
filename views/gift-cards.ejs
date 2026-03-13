@@ -14,6 +14,7 @@ html{scroll-behavior:smooth}
 body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-system,sans-serif;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased}
 :root{--olive:#636845;--olive-light:#7a7f5c;--cream:#FAF8F5;--warm:#F3EDE6;--charcoal:#1a1a1a;--mid:#5a5a5a;--light:#999}
 
+/* Nav — olive bar, matching allergens page */
 .nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:var(--olive);box-shadow:0 1px 0 rgba(0,0,0,0.08)}
 .nav-logo{height:32px;width:auto;filter:brightness(0) invert(1)}
 .nav-links{display:flex;gap:28px;list-style:none}
@@ -28,30 +29,30 @@ body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-syste
 /* Amount buttons */
 .amount-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 .amount-btn{
-  padding:16px 8px;border:2px solid rgba(0,0,0,0.08);border-radius:12px;background:#fff;
+  padding:16px 8px;border:1px solid rgba(0,0,0,0.08);border-radius:12px;background:#fff;
   font-family:'Cabin',sans-serif;font-size:20px;font-weight:500;color:var(--charcoal);
   cursor:pointer;transition:all .2s;text-align:center;
 }
 .amount-btn:hover{border-color:var(--olive);background:rgba(99,104,69,0.04)}
-.amount-btn.selected{border-color:var(--olive);background:var(--olive);color:#fff}
+.amount-btn.selected{border-color:var(--olive);background:var(--olive);color:var(--cream)}
 
 .custom-amount{margin-bottom:32px}
 .custom-amount label{font-size:13px;color:var(--mid);letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:8px}
 .custom-amount input{
   width:100%;font-family:'Cabin',sans-serif;font-size:18px;padding:14px 16px;
-  border:2px solid rgba(0,0,0,0.08);border-radius:12px;background:#fff;outline:none;
+  border:1px solid rgba(0,0,0,0.08);border-radius:12px;background:#fff;outline:none;
   transition:border-color .3s;
 }
 .custom-amount input:focus{border-color:var(--olive)}
 
 /* Toggle */
-.toggle-group{display:flex;gap:0;margin-bottom:8px;border-radius:12px;overflow:hidden;border:2px solid rgba(0,0,0,0.08)}
+.toggle-group{display:flex;gap:0;margin-bottom:8px;border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.08)}
 .toggle-btn{
   flex:1;padding:14px;font-family:'Cabin',sans-serif;font-size:14px;font-weight:500;
   background:#fff;border:none;cursor:pointer;transition:all .2s;text-align:center;
   letter-spacing:0.04em;
 }
-.toggle-btn.selected{background:var(--olive);color:#fff}
+.toggle-btn.selected{background:var(--olive);color:var(--cream)}
 .toggle-hint{font-size:13px;color:var(--light);margin-bottom:32px;text-align:center}
 
 /* Form fields */
@@ -59,7 +60,7 @@ body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-syste
 .form-group label{display:block;font-size:13px;color:var(--mid);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
 .form-group input,.form-group textarea{
   width:100%;font-family:'Cabin',sans-serif;font-size:15px;padding:12px 16px;
-  border:1px solid rgba(0,0,0,0.10);border-radius:10px;background:#fff;outline:none;
+  border:1px solid rgba(0,0,0,0.08);border-radius:10px;background:#fff;outline:none;
   transition:border-color .3s;
 }
 .form-group input:focus,.form-group textarea:focus{border-color:var(--olive)}
@@ -74,29 +75,29 @@ body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-syste
 .buy-btn{
   width:100%;padding:16px;font-family:'Cabin',sans-serif;font-size:15px;font-weight:600;
   letter-spacing:0.12em;text-transform:uppercase;border:none;border-radius:100px;
-  background:var(--olive);color:#fff;cursor:pointer;transition:all .3s;
+  background:var(--olive);color:var(--cream);cursor:pointer;transition:all .3s;
 }
 .buy-btn:hover{background:var(--olive-light)}
 .buy-btn:disabled{opacity:0.5;cursor:not-allowed}
 
 /* Error */
-.form-error{background:#fef6f6;border:1px solid #f0d0d0;border-radius:10px;padding:12px 16px;color:#7a2020;font-size:14px;margin-bottom:16px;display:none}
+.form-error{background:var(--warm);border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:12px 16px;color:var(--charcoal);font-size:14px;margin-bottom:16px;display:none}
 .form-error.visible{display:block}
 
 /* Payment overlay */
 .payment-overlay{
-  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.6);
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);
   display:none;align-items:center;justify-content:center;
   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
 }
 .payment-overlay.visible{display:flex}
 .payment-modal{
-  background:#fff;border-radius:16px;width:90%;max-width:500px;max-height:90vh;
+  background:var(--cream);border-radius:16px;width:90%;max-width:500px;max-height:90vh;
   overflow-y:auto;position:relative;
 }
 .payment-close{
   position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;
-  border:1px solid rgba(0,0,0,0.1);background:#fff;cursor:pointer;
+  border:1px solid rgba(0,0,0,0.08);background:var(--cream);cursor:pointer;
   display:flex;align-items:center;justify-content:center;font-size:18px;z-index:10;
 }
 .payment-close:hover{background:var(--warm)}
@@ -111,11 +112,11 @@ body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-syste
 .payment-state.visible{display:block}
 .payment-state h3{font-family:'Cabin',sans-serif;font-size:22px;font-weight:400;margin-bottom:12px}
 .payment-state p{color:var(--mid);font-size:15px;line-height:1.6}
-.spinner{width:40px;height:40px;border:3px solid rgba(0,0,0,0.1);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px}
+.spinner{width:40px;height:40px;border:3px solid rgba(0,0,0,0.08);border-top-color:var(--olive);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .check-icon{width:48px;height:48px;color:var(--olive);margin:0 auto 16px}
 
-/* Footer */
+/* Footer — matches original */
 .footer{background:var(--charcoal);color:#ccc;padding:40px}
 .footer-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
 .footer-logo{height:28px;width:auto;filter:brightness(0) invert(1);opacity:0.7}
@@ -131,6 +132,7 @@ body{background:#FAF8F5;color:#1a1a1a;font-family:'Cabin',system-ui,-apple-syste
   <a href="/"><img src="/images/logo.png" alt="Pala Pizza" class="nav-logo"></a>
   <ul class="nav-links">
     <li><a href="/">Home</a></li>
+    <li><a href="/allergens">Allergens</a></li>
     <li><a href="/gift-cards" class="active">Gift Cards</a></li>
   </ul>
 </nav>
@@ -247,7 +249,6 @@ let selectedAmount = 2500;
 let sendTo = 'self';
 let currentCheckout = null;
 
-// Amount buttons
 document.querySelectorAll('.amount-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
@@ -265,7 +266,6 @@ document.getElementById('customAmount').addEventListener('input', function() {
   }
 });
 
-// Toggle
 document.querySelectorAll('.toggle-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected'));
@@ -283,7 +283,6 @@ document.querySelectorAll('.toggle-btn').forEach(btn => {
   });
 });
 
-// Buy
 document.getElementById('buyBtn').addEventListener('click', async () => {
   const errEl = document.getElementById('formError');
   errEl.classList.remove('visible');
@@ -304,13 +303,8 @@ document.getElementById('buyBtn').addEventListener('click', async () => {
   }
 
   const payload = {
-    amount: selectedAmount,
-    purchaserName,
-    purchaserEmail,
-    sendTo,
-    recipientName: null,
-    recipientEmail: null,
-    personalMessage: null,
+    amount: selectedAmount, purchaserName, purchaserEmail, sendTo,
+    recipientName: null, recipientEmail: null, personalMessage: null,
   };
 
   if (sendTo === 'friend') {
@@ -337,15 +331,12 @@ document.getElementById('buyBtn').addEventListener('click', async () => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to create checkout');
 
-    // Show overlay
     const overlay = document.getElementById('paymentOverlay');
     overlay.classList.add('visible');
     document.getElementById('overlaySummaryAmount').textContent = '\u00A3' + (selectedAmount / 100).toFixed(0);
     document.getElementById('overlaySummaryFor').textContent = sendTo === 'friend'
-      ? 'For ' + payload.recipientName
-      : 'For yourself';
+      ? 'For ' + payload.recipientName : 'For yourself';
 
-    // Show checkout, hide other states
     document.getElementById('paymentCheckout').style.display = '';
     document.getElementById('processingState').classList.remove('visible');
     document.getElementById('confirmationState').classList.remove('visible');
@@ -374,7 +365,6 @@ async function handlePaymentComplete() {
   try {
     const sessionResult = await currentCheckout.session();
     const sessionId = sessionResult.id;
-
     let attempts = 0;
     const maxAttempts = 15;
 
@@ -386,7 +376,6 @@ async function handlePaymentComplete() {
       if (data.status === 'active') {
         document.getElementById('processingState').classList.remove('visible');
         document.getElementById('confirmationState').classList.add('visible');
-
         const title = document.getElementById('confirmTitle');
         const msg = document.getElementById('confirmMessage');
 
@@ -406,7 +395,7 @@ async function handlePaymentComplete() {
         document.getElementById('processingState').classList.remove('visible');
         document.getElementById('confirmationState').classList.add('visible');
         document.getElementById('confirmTitle').textContent = 'Payment received!';
-        document.getElementById('confirmMessage').textContent = "Your gift card is being processed. Check your email shortly \u2014 it should arrive within a few minutes.";
+        document.getElementById('confirmMessage').textContent = "Your gift card is being processed. Check your email shortly.";
       }
     };
 
@@ -418,12 +407,8 @@ async function handlePaymentComplete() {
   }
 }
 
-// Close overlay
 document.getElementById('paymentClose').addEventListener('click', () => {
-  if (currentCheckout) {
-    try { currentCheckout.destroy(); } catch(e) {}
-    currentCheckout = null;
-  }
+  if (currentCheckout) { try { currentCheckout.destroy(); } catch(e) {} currentCheckout = null; }
   document.getElementById('paymentOverlay').classList.remove('visible');
 });
 </script>
