@@ -1,9 +1,17 @@
 <%- include('layout-head', { pageTitle: 'Menu' }) %>
 
+<style>
+  tr.hidden-item td { opacity: 0.45; }
+  tr.hidden-item td strong { text-decoration: line-through; }
+  .vis-btn { min-width: 56px; }
+  .vis-btn--hide { background: var(--warm, #F3EDE6); color: var(--mid, #5a5a5a); border: 1px solid rgba(0,0,0,0.08); }
+  .vis-btn--show { background: var(--olive, #686A49); color: #fff; border: 1px solid transparent; }
+</style>
+
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
   <div>
     <h1>Menu Items</h1>
-    <p class="subtitle">Manage your pizza slices and desserts separately. Use arrows to reorder.</p>
+    <p class="subtitle">Manage your pizza slices and desserts. Hidden items keep their allergen data and can be shown again any time.</p>
   </div>
   <button class="btn btn-primary" onclick="showAddForm()">+ Add Item</button>
 </div>
@@ -60,21 +68,26 @@
         <th style="width:80px">Order</th>
         <th>Name</th>
         <th>Tag</th>
-        <th>Visible</th>
-        <th style="width:160px">Actions</th>
+        <th style="width:70px">Status</th>
+        <th style="width:200px">Actions</th>
       </tr>
     </thead>
     <tbody>
       <% const pizzaItems = items.filter(i => i.category === 'pizza' || !i.category); %>
       <% pizzaItems.forEach((item, i) => { %>
-      <tr id="row-<%= item.id %>">
+      <tr id="row-<%= item.id %>" class="<%= item.visible ? '' : 'hidden-item' %>">
         <td>
           <button class="btn btn-outline btn-sm" onclick="moveItem(<%= item.id %>, 'up')" <%= i === 0 ? 'disabled' : '' %> title="Move up">&uarr;</button>
           <button class="btn btn-outline btn-sm" onclick="moveItem(<%= item.id %>, 'down')" <%= i === pizzaItems.length - 1 ? 'disabled' : '' %> title="Move down">&darr;</button>
         </td>
         <td><strong><%= item.name %></strong></td>
         <td><%= item.tag || '' %></td>
-        <td><%= item.visible ? 'Yes' : 'No' %></td>
+        <td>
+          <button class="btn btn-sm vis-btn <%= item.visible ? 'vis-btn--hide' : 'vis-btn--show' %>"
+                  onclick="toggleVisible(<%= item.id %>, <%= !item.visible %>)">
+            <%= item.visible ? 'Hide' : 'Show' %>
+          </button>
+        </td>
         <td>
           <button class="btn btn-outline btn-sm" onclick='editItem(<%= JSON.stringify(item) %>)'>Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteItem(<%= item.id %>)">Delete</button>
@@ -98,14 +111,14 @@
         <th>Name</th>
         <th>Tag</th>
         <th>Price</th>
-        <th>Visible</th>
-        <th style="width:160px">Actions</th>
+        <th style="width:70px">Status</th>
+        <th style="width:200px">Actions</th>
       </tr>
     </thead>
     <tbody>
       <% const dessertItems = items.filter(i => i.category === 'dessert'); %>
       <% dessertItems.forEach((item, i) => { %>
-      <tr id="row-<%= item.id %>">
+      <tr id="row-<%= item.id %>" class="<%= item.visible ? '' : 'hidden-item' %>">
         <td>
           <button class="btn btn-outline btn-sm" onclick="moveItem(<%= item.id %>, 'up')" <%= i === 0 ? 'disabled' : '' %> title="Move up">&uarr;</button>
           <button class="btn btn-outline btn-sm" onclick="moveItem(<%= item.id %>, 'down')" <%= i === dessertItems.length - 1 ? 'disabled' : '' %> title="Move down">&darr;</button>
@@ -113,7 +126,12 @@
         <td><strong><%= item.name %></strong></td>
         <td><%= item.tag || '' %></td>
         <td><%= item.price ? '&pound;' + (item.price / 100).toFixed(2) : '' %></td>
-        <td><%= item.visible ? 'Yes' : 'No' %></td>
+        <td>
+          <button class="btn btn-sm vis-btn <%= item.visible ? 'vis-btn--hide' : 'vis-btn--show' %>"
+                  onclick="toggleVisible(<%= item.id %>, <%= !item.visible %>)">
+            <%= item.visible ? 'Hide' : 'Show' %>
+          </button>
+        </td>
         <td>
           <button class="btn btn-outline btn-sm" onclick='editItem(<%= JSON.stringify(item) %>)'>Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteItem(<%= item.id %>)">Delete</button>
@@ -192,6 +210,16 @@ async function moveItem(id, direction) {
   });
   if (res.ok) location.reload();
   else alert('Failed to move item');
+}
+
+async function toggleVisible(id, visible) {
+  const res = await fetch('/api/menu/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ visible }),
+  });
+  if (res.ok) location.reload();
+  else alert('Failed to update visibility');
 }
 
 async function updatePriceLabel(value) {
