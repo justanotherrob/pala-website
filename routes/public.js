@@ -85,6 +85,17 @@ router.get('/gift-cards/success', async (req, res) => {
   }
 });
 
+// Privacy policy
+router.get('/privacy', async (req, res) => {
+  try {
+    const settings = await getSettings();
+    res.render('privacy', { settings });
+  } catch (err) {
+    console.error('Error loading privacy policy:', err);
+    res.status(500).send('Something went wrong');
+  }
+});
+
 // API: menu items (public, for any AJAX needs)
 router.get('/api/menu', async (req, res) => {
   try {
