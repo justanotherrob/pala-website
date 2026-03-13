@@ -17,6 +17,9 @@ const { createCheckoutSession } = require('./services/stripe');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust Railway's reverse proxy (needed for secure cookies)
+app.set('trust proxy', 1);
+
 // View engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
