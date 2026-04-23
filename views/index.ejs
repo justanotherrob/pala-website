@@ -24,6 +24,38 @@ body {
   font-family: "Cabin", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
+/* Sticky nav — desktop only, slides in on scroll */
+.sticky-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 40px;
+  background: #686A49;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+.sticky-nav.visible { transform: translateY(0); }
+.sticky-nav .nav-logo { height: 32px; width: auto; filter: brightness(0) invert(1); }
+.sticky-nav .nav-links { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+.sticky-nav .nav-links a {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(247,245,243,0.75);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: color .3s;
+}
+.sticky-nav .nav-links a:hover,
+.sticky-nav .nav-links a.active { color: #F7F5F3; }
+@media (max-width: 768px) { .sticky-nav { display: none; } }
+
 /* Hero */
 
 .hero {
@@ -215,6 +247,17 @@ body {
 </head>
 <body>
 
+<nav class="sticky-nav" id="stickyNav">
+  <a href="/"><img src="/images/logo.png" alt="Pala Pizza" class="nav-logo"></a>
+  <ul class="nav-links">
+    <li><a href="/" class="active">Home</a></li>
+    <li><a href="/allergens">Allergens</a></li>
+    <% if (settings.gift_cards_enabled === 'true') { %>
+      <li><a href="/gift-cards">Gift Cards</a></li>
+    <% } %>
+  </ul>
+</nav>
+
 <header class="hero">
   <img src="/images/logo.png" alt="Pala Roman pizza logo" class="hero-logo">
 </header>
@@ -295,6 +338,19 @@ body {
 </footer>
 
 <script>
+(function(){
+  var nav = document.getElementById('stickyNav');
+  var hero = document.querySelector('.hero');
+  if (nav && hero) {
+    var onScroll = function() {
+      var trigger = hero.offsetHeight - 80;
+      if (window.scrollY > trigger) nav.classList.add('visible');
+      else nav.classList.remove('visible');
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+})();
 (function(){
   var user = "<%= (settings.email_address || 'ciao@palapizza.co.uk').split('@')[0] %>";
   var domain = "<%= (settings.email_address || 'ciao@palapizza.co.uk').split('@')[1] %>";
