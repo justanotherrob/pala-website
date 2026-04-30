@@ -30,9 +30,20 @@ body{margin:0;padding:0;background:#F7F5F3;color:#000;font-family:'Cabin',system
   transition:opacity .3s;
 }
 .home-link:hover{opacity:0.9}
+.announce-banner{background:#5c3d2e;color:#fff;text-align:center;padding:12px 48px 12px 20px;font-size:15px;font-family:Arial,Helvetica,sans-serif;letter-spacing:0.02em;position:relative}
+.announce-banner-close{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.7);font-size:20px;cursor:pointer;line-height:1}
+.announce-banner-close:hover{color:#fff}
 </style>
 </head>
 <body>
+
+<% if (settings.banner_enabled === 'true' && settings.banner_text) { %>
+<div class="announce-banner" id="announceBanner">
+  <%= settings.banner_text %>
+  <button class="announce-banner-close" onclick="document.getElementById('announceBanner').remove()">&times;</button>
+</div>
+<% } %>
+
 <nav class="nav">
   <a href="/"><img src="/images/logo.png" alt="Pala Pizza" class="nav-logo"></a>
   <ul class="nav-links">

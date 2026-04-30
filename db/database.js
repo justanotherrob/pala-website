@@ -195,6 +195,21 @@ async function initDatabase() {
      ON CONFLICT (key) DO NOTHING`
   );
 
+  // Ensure announcement settings exist (for existing databases)
+  const announcementDefaults = [
+    { key: 'banner_enabled', value: 'false', label: 'Banner Enabled' },
+    { key: 'banner_text', value: '', label: 'Banner Text' },
+    { key: 'popup_enabled', value: 'false', label: 'Popup Enabled' },
+    { key: 'popup_title', value: '', label: 'Popup Title' },
+    { key: 'popup_text', value: '', label: 'Popup Text' },
+  ];
+  for (const s of announcementDefaults) {
+    await pool.query(
+      'INSERT INTO site_settings (key, value, label) VALUES ($1, $2, $3) ON CONFLICT (key) DO NOTHING',
+      [s.key, s.value, s.label]
+    );
+  }
+
   console.log('Database initialized');
 }
 

@@ -74,6 +74,15 @@ router.get('/hours', async (req, res) => {
   res.render('admin/hours', { hours });
 });
 
+// Announcements (banner & popup)
+router.get('/announcements', async (req, res) => {
+  const keys = ['banner_enabled', 'banner_text', 'popup_enabled', 'popup_title', 'popup_text'];
+  const rows = await db.all('SELECT key, value FROM site_settings WHERE key = ANY($1)', [keys]);
+  const settings = {};
+  for (const row of rows) settings[row.key] = row.value;
+  res.render('admin/announcements', { settings });
+});
+
 // Settings
 router.get('/settings', async (req, res) => {
   const settings = await db.all('SELECT * FROM site_settings ORDER BY key');

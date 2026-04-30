@@ -1,0 +1,76 @@
+<%- include('layout-head', { pageTitle: 'Announcements' }) %>
+
+<h1>Announcements</h1>
+<p class="subtitle">Show a banner or popup to visitors. Great for closures, holidays, or special notices.</p>
+
+<div class="card">
+  <h2>Site Banner</h2>
+  <p style="font-size:13px;color:var(--mid);margin-bottom:16px">A bar across the top of every page. Visitors can dismiss it.</p>
+
+  <div class="form-group">
+    <label>Enabled</label>
+    <select id="banner_enabled" onchange="saveSetting('banner_enabled', this.value)">
+      <option value="false" <%= settings.banner_enabled !== 'true' ? 'selected' : '' %>>Off</option>
+      <option value="true" <%= settings.banner_enabled === 'true' ? 'selected' : '' %>>On</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Banner Text</label>
+    <input type="text" id="banner_text" value="<%= settings.banner_text || '' %>" placeholder="e.g. We're closed today due to a power cut — back tomorrow!">
+  </div>
+
+  <button class="btn btn-primary" onclick="saveSetting('banner_text', document.getElementById('banner_text').value)">Save Banner</button>
+  <span id="feedback-banner" style="margin-left:12px;font-size:13px;color:var(--olive);opacity:0;transition:opacity .3s"></span>
+</div>
+
+<div class="card">
+  <h2>Popup</h2>
+  <p style="font-size:13px;color:var(--mid);margin-bottom:16px">A modal shown once per visit on the homepage only.</p>
+
+  <div class="form-group">
+    <label>Enabled</label>
+    <select id="popup_enabled" onchange="saveSetting('popup_enabled', this.value)">
+      <option value="false" <%= settings.popup_enabled !== 'true' ? 'selected' : '' %>>Off</option>
+      <option value="true" <%= settings.popup_enabled === 'true' ? 'selected' : '' %>>On</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Popup Title</label>
+    <input type="text" id="popup_title" value="<%= settings.popup_title || '' %>" placeholder="e.g. Closed Today">
+  </div>
+
+  <div class="form-group">
+    <label>Popup Message</label>
+    <textarea id="popup_text" rows="3" placeholder="e.g. Sorry, we've had to close at short notice today. We'll be back tomorrow as usual!"><%= settings.popup_text || '' %></textarea>
+  </div>
+
+  <button class="btn btn-primary" onclick="savePopup()">Save Popup</button>
+  <span id="feedback-popup" style="margin-left:12px;font-size:13px;color:var(--olive);opacity:0;transition:opacity .3s"></span>
+</div>
+
+<script>
+async function saveSetting(key, value) {
+  const res = await fetch('/api/settings/' + key, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ value }),
+  });
+  if (res.ok) {
+    var fb = key.startsWith('popup') ? document.getElementById('feedback-popup') : document.getElementById('feedback-banner');
+    fb.textContent = 'Saved!';
+    fb.style.opacity = '1';
+    setTimeout(function() { fb.style.opacity = '0'; }, 1500);
+  } else {
+    alert('Failed to save');
+  }
+}
+
+async function savePopup() {
+  await saveSetting('popup_title', document.getElementById('popup_title').value);
+  await saveSetting('popup_text', document.getElementById('popup_text').value);
+}
+</script>
+
+<%- include('layout-foot') %>

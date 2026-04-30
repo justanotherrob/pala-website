@@ -248,9 +248,100 @@ body {
 }
 
 .site-footer a:hover { text-decoration: underline; }
+
+/* Announcement banner */
+.announce-banner {
+  background: #5c3d2e;
+  color: #fff;
+  text-align: center;
+  padding: 12px 48px 12px 20px;
+  font-size: 15px;
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0.02em;
+  position: relative;
+}
+.announce-banner-close {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+.announce-banner-close:hover { color: #fff; }
+
+/* Popup overlay */
+.announce-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.announce-popup {
+  background: #F7F5F3;
+  border-radius: 10px;
+  max-width: 420px;
+  width: 100%;
+  padding: 36px 28px 28px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+.announce-popup h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.announce-popup p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 20px;
+}
+.announce-popup-close {
+  display: inline-block;
+  padding: 10px 32px;
+  background: #686A49;
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  font-family: 'Cabin', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.announce-popup-close:hover { background: #7a7f5c; }
 </style>
 </head>
 <body>
+
+<% if (settings.banner_enabled === 'true' && settings.banner_text) { %>
+<div class="announce-banner" id="announceBanner">
+  <%= settings.banner_text %>
+  <button class="announce-banner-close" onclick="document.getElementById('announceBanner').remove()">&times;</button>
+</div>
+<% } %>
+
+<% if (settings.popup_enabled === 'true' && (settings.popup_title || settings.popup_text)) { %>
+<div class="announce-popup-overlay" id="announcePopup" style="display:none">
+  <div class="announce-popup">
+    <% if (settings.popup_title) { %><h2><%= settings.popup_title %></h2><% } %>
+    <% if (settings.popup_text) { %><p><%= settings.popup_text %></p><% } %>
+    <button class="announce-popup-close" onclick="document.getElementById('announcePopup').remove()">Got it</button>
+  </div>
+</div>
+<% } %>
 
 <nav class="sticky-nav" id="stickyNav">
   <a href="/"><img src="/images/logo.png" alt="Pala Pizza" class="nav-logo"></a>
@@ -363,6 +454,18 @@ body {
   var link = document.getElementById("emailLink");
   if(!link) return;
   link.href = "mailto:" + user + "@" + domain + "?subject=" + encodeURIComponent(subject);
+})();
+(function(){
+  var popup = document.getElementById('announcePopup');
+  if (!popup) return;
+  if (sessionStorage.getItem('popup_dismissed')) return;
+  popup.style.display = '';
+  popup.addEventListener('click', function(e) {
+    if (e.target === popup || e.target.classList.contains('announce-popup-close')) {
+      sessionStorage.setItem('popup_dismissed', '1');
+      popup.remove();
+    }
+  });
 })();
 </script>
 </body>
