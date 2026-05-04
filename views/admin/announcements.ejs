@@ -1,6 +1,22 @@
 <%- include('layout-head', { pageTitle: 'Announcements' }) %>
 
-<h1>Announcements</h1>
+<h1>Site Controls</h1>
+
+<div class="card">
+  <h2>Gift Cards</h2>
+  <p style="font-size:13px;color:var(--mid);margin-bottom:16px">Turn gift card sales on or off. When off, the gift card page explains they're unavailable and the nav link is hidden.</p>
+
+  <div class="form-group">
+    <label>Gift Cards</label>
+    <select id="gift_cards_enabled" onchange="saveSetting('gift_cards_enabled', this.value)">
+      <option value="false" <%= settings.gift_cards_enabled !== 'true' ? 'selected' : '' %>>Off</option>
+      <option value="true" <%= settings.gift_cards_enabled === 'true' ? 'selected' : '' %>>On</option>
+    </select>
+  </div>
+  <span id="feedback-giftcards" style="font-size:13px;color:var(--olive);opacity:0;transition:opacity .3s"></span>
+</div>
+
+<h2 style="margin-top:40px">Announcements</h2>
 <p class="subtitle">Show a banner or popup to visitors. Great for closures, holidays, or special notices.</p>
 
 <div class="card">
@@ -58,7 +74,7 @@ async function saveSetting(key, value) {
     body: JSON.stringify({ value }),
   });
   if (res.ok) {
-    var fb = key.startsWith('popup') ? document.getElementById('feedback-popup') : document.getElementById('feedback-banner');
+    var fb = key === 'gift_cards_enabled' ? document.getElementById('feedback-giftcards') : key.startsWith('popup') ? document.getElementById('feedback-popup') : document.getElementById('feedback-banner');
     fb.textContent = 'Saved!';
     fb.style.opacity = '1';
     setTimeout(function() { fb.style.opacity = '0'; }, 1500);

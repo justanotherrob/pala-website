@@ -1,12 +1,77 @@
 <%- include('layout-head', { pageTitle: 'Allergens' }) %>
 
 <h1>Allergen Matrix</h1>
-<p class="subtitle">Click a cell to cycle through: empty &rarr; Yes (&check;) &rarr; No (&ndash;) &rarr; empty. Or type custom text.</p>
+<p class="subtitle">Tap any cell to set its value.</p>
 
 <% if (menuItems.length === 0) { %>
 <div class="card"><p style="text-align:center;color:var(--mid);padding:24px">Add menu items first, then you can set allergen data.</p></div>
 <% } else { %>
 
+<style>
+.allergen-cell:hover { background: rgba(99,104,69,0.06); }
+.cell-popover {
+  position: fixed;
+  z-index: 100;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.08);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+}
+.cell-popover .pop-btns {
+  display: flex;
+  gap: 6px;
+}
+.cell-popover .pop-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+}
+.cell-popover .pop-btn:hover { background: rgba(99,104,69,0.08); }
+.cell-popover .pop-btn.active { background: #636845; color: #fff; border-color: #636845; }
+.cell-popover .pop-custom {
+  display: flex;
+  gap: 6px;
+}
+.cell-popover .pop-custom input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  min-width: 0;
+}
+.cell-popover .pop-custom input:focus { border-color: #636845; }
+.cell-popover .pop-custom button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #636845;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cell-popover-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+}
+</style>
 <div class="card" style="overflow-x:auto">
   <table class="admin-table" style="min-width:max-content">
     <thead>
@@ -24,11 +89,10 @@
         <% allergens.forEach(a => { %>
           <% const val = (valueMap[item.id] && valueMap[item.id][a.id]) || ''; %>
           <% const vl = val.toLowerCase(); %>
-          <td style="text-align:center;cursor:pointer;user-select:none"
+          <td class="allergen-cell" style="text-align:center;cursor:pointer;user-select:none;transition:background .15s"
               data-item="<%= item.id %>" data-allergen="<%= a.id %>"
               data-value="<%= val %>"
-              onclick="cycleValue(this)"
-              title="Click to toggle, double-click to edit">
+              onclick="openPopover(event, this)">
             <% if (['y','yes','true','1','contains'].includes(vl)) { %>
               <span style="color:#636845;font-weight:600">&#10003;</span>
             <% } else if (['n','no','false','0'].includes(vl)) { %>
@@ -47,29 +111,105 @@
 </div>
 
 <script>
-async function cycleValue(td) {
-  const itemId = td.dataset.item;
-  const allergenId = td.dataset.allergen;
-  let current = td.dataset.value.toLowerCase();
+function renderCell(td, value) {
+  var vl = value.toLowerCase();
+  td.dataset.value = value;
+  if (['y','yes','true','1','contains'].includes(vl)) {
+    td.innerHTML = '<span style="color:#636845;font-weight:600">&#10003;</span>';
+  } else if (['n','no','false','0'].includes(vl)) {
+    td.innerHTML = '<span style="opacity:0.3">&ndash;</span>';
+  } else if (value) {
+    td.innerHTML = '<span style="font-size:12px">' + value.replace(/</g,'&lt;') + '</span>';
+  } else {
+    td.innerHTML = '<span style="opacity:0.15">&middot;</span>';
+  }
+}
 
-  let next;
-  if (!current || current === '') next = 'yes';
-  else if (['y','yes','true','1','contains'].includes(current)) next = 'no';
-  else if (['n','no','false','0'].includes(current)) next = '';
-  else next = '';
-
-  const res = await fetch('/api/allergens/value', {
+async function saveValue(td, value) {
+  var res = await fetch('/api/allergens/value', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ menuItemId: parseInt(itemId), allergenId: parseInt(allergenId), value: next }),
+    body: JSON.stringify({ menuItemId: parseInt(td.dataset.item), allergenId: parseInt(td.dataset.allergen), value }),
+  });
+  if (res.ok) renderCell(td, value);
+}
+
+function closePopover() {
+  var existing = document.querySelector('.cell-popover');
+  var bg = document.querySelector('.cell-popover-bg');
+  if (existing) existing.remove();
+  if (bg) bg.remove();
+}
+
+function openPopover(e, td) {
+  e.stopPropagation();
+  closePopover();
+
+  var current = td.dataset.value;
+  var cl = current.toLowerCase();
+  var isYes = ['y','yes','true','1','contains'].includes(cl);
+  var isNo = ['n','no','false','0'].includes(cl);
+  var isCustom = current && !isYes && !isNo;
+
+  // Background overlay to catch outside clicks
+  var bg = document.createElement('div');
+  bg.className = 'cell-popover-bg';
+  bg.onclick = closePopover;
+  document.body.appendChild(bg);
+
+  // Popover
+  var pop = document.createElement('div');
+  pop.className = 'cell-popover';
+  pop.innerHTML =
+    '<div class="pop-btns">' +
+      '<button class="pop-btn' + (isYes ? ' active' : '') + '" data-val="yes">&#10003; Yes</button>' +
+      '<button class="pop-btn' + (isNo ? ' active' : '') + '" data-val="no">&ndash; No</button>' +
+      '<button class="pop-btn' + (!current ? ' active' : '') + '" data-val="">Clear</button>' +
+    '</div>' +
+    '<div class="pop-custom">' +
+      '<input type="text" placeholder="Custom text\u2026" value="' + (isCustom ? current.replace(/"/g,'&quot;') : '') + '">' +
+      '<button>Save</button>' +
+    '</div>';
+
+  document.body.appendChild(pop);
+
+  // Position near the cell
+  var rect = td.getBoundingClientRect();
+  var popW = pop.offsetWidth;
+  var popH = pop.offsetHeight;
+  var left = rect.left + rect.width / 2 - popW / 2;
+  var top = rect.bottom + 6;
+
+  // Keep within viewport
+  if (left < 8) left = 8;
+  if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+  if (top + popH > window.innerHeight - 8) top = rect.top - popH - 6;
+
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+
+  // Button clicks
+  pop.querySelectorAll('.pop-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      saveValue(td, btn.dataset.val);
+      closePopover();
+    };
   });
 
-  if (res.ok) {
-    td.dataset.value = next;
-    if (next === 'yes') td.innerHTML = '<span style="color:#636845;font-weight:600">&#10003;</span>';
-    else if (next === 'no') td.innerHTML = '<span style="opacity:0.3">&ndash;</span>';
-    else td.innerHTML = '<span style="opacity:0.15">&middot;</span>';
-  }
+  // Custom text save
+  var customInput = pop.querySelector('.pop-custom input');
+  var customBtn = pop.querySelector('.pop-custom button');
+  customBtn.onclick = function() {
+    var val = customInput.value.trim();
+    if (val) {
+      saveValue(td, val);
+      closePopover();
+    }
+  };
+  customInput.onkeydown = function(ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); customBtn.click(); }
+    if (ev.key === 'Escape') { ev.preventDefault(); closePopover(); }
+  };
 }
 </script>
 

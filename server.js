@@ -89,6 +89,12 @@ app.post('/gift-cards/checkout', async (req, res) => {
     const { amount, purchaserName, purchaserEmail, recipientName, recipientEmail, sendTo, personalMessage } = req.body;
     console.log('[CHECKOUT] Request:', { amount, purchaserName, purchaserEmail, sendTo });
 
+    // Check if gift cards are enabled
+    const gcSetting = await db.get("SELECT value FROM site_settings WHERE key = 'gift_cards_enabled'");
+    if (!gcSetting || gcSetting.value !== 'true') {
+      return res.status(403).json({ error: 'Gift cards are not currently available.' });
+    }
+
     if (!stripe) {
       return res.status(503).json({ error: 'Payment system is not configured. Please try again later.' });
     }

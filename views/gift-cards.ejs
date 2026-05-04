@@ -4,10 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gift Cards | Pala Pizza</title>
+<% if (settings.gift_cards_enabled !== 'true') { %>
+<meta name="description" content="Pala Pizza gift cards are not currently available. Check back soon or visit us at our Leith restaurant.">
+<% } else { %>
+<meta name="description" content="Buy a Pala Pizza gift card for yourself or send one to a friend. Available from £15 to £150.">
+<% } %>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<% if (settings.gift_cards_enabled === 'true') { %>
 <script src="https://js.stripe.com/v3/"></script>
+<% } %>
 <style>
 body{margin:0;padding:0;background:#F7F5F3;color:#000;font-family:'Cabin',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
 :root{--olive:#686A49;--olive-light:#7a7f5c;--cream:#F7F5F3;--warm:#F3EDE6;--charcoal:#1a1a1a;--mid:#5a5a5a;--light:#999}
@@ -137,12 +144,16 @@ body{margin:0;padding:0;background:#F7F5F3;color:#000;font-family:'Cabin',system
   <ul class="nav-links">
     <li><a href="/">Home</a></li>
     <li><a href="/allergens">Allergens</a></li>
+    <% if (settings.gift_cards_enabled === 'true') { %>
     <li><a href="/gift-cards" class="active">Gift Cards</a></li>
+    <% } %>
   </ul>
 </nav>
 
 <main class="gc-page">
   <h1>Gift Cards</h1>
+
+<% if (settings.gift_cards_enabled === 'true') { %>
   <p class="subtitle">Give the gift of pizza al taglio.</p>
 
   <div class="form-error" id="formError"></div>
@@ -200,8 +211,20 @@ body{margin:0;padding:0;background:#F7F5F3;color:#000;font-family:'Cabin',system
   <hr class="section-divider">
 
   <button class="buy-btn" id="buyBtn">Buy Gift Card</button>
+
+<% } else { %>
+  <p class="subtitle" style="margin-bottom:24px">Gift cards are not currently available.</p>
+  <p style="text-align:center;color:var(--mid);font-size:15px;line-height:1.8;max-width:420px;margin:0 auto">
+    We're not selling gift cards right now, but we'd still love to see you. Pop into Pala at
+    <a href="<%= settings.maps_url || 'https://maps.app.goo.gl/refCJDhQGju6NiAx9' %>" target="_blank" rel="noopener" style="color:var(--olive)"><%= settings.address_line1 || '7 Jane Street' %>, <%= settings.address_line2 || 'Leith' %></a>
+    or follow us on
+    <a href="<%= settings.instagram_url || 'https://instagram.com/pala.edin' %>" target="_blank" rel="noopener" style="color:var(--olive)">Instagram</a>
+    to find out when they're back.
+  </p>
+<% } %>
 </main>
 
+<% if (settings.gift_cards_enabled === 'true') { %>
 <!-- Payment overlay -->
 <div class="payment-overlay" id="paymentOverlay">
   <div class="payment-modal">
@@ -418,5 +441,6 @@ document.getElementById('paymentClose').addEventListener('click', () => {
   document.getElementById('paymentOverlay').classList.remove('visible');
 });
 </script>
+<% } %>
 </body>
 </html>
