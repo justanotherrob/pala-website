@@ -3,7 +3,7 @@
 
 const store = new Map();
 
-const DEFAULT_TTL = 60 * 1000; // 60 seconds
+const DEFAULT_TTL = 60 * 60 * 1000; // 1 hour
 
 function get(key) {
   const entry = store.get(key);
