@@ -1,7 +1,9 @@
 require('dotenv').config();
 
 const express = require('express');
+const helmet = require('helmet');
 const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 const session = require('express-session');
 const SqliteStore = require('better-sqlite3-session-store')(session);
 const Database = require('better-sqlite3');
@@ -41,7 +43,7 @@ app.post('/webhook/stripe', bodyParser.raw({ type: 'application/json' }), async 
     console.log('[WEBHOOK] Event verified:', event.type, event.id);
   } catch (err) {
     console.error('[WEBHOOK] Signature verification FAILED:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    return res.status(400).send('Webhook signature verification failed');
   }
 
   try {
@@ -52,6 +54,37 @@ app.post('/webhook/stripe', bodyParser.raw({ type: 'application/json' }), async 
   }
 
   res.json({ received: true });
+});
+
+// ── Security ────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      frameSrc: ["https://js.stripe.com"],
+      connectSrc: ["'self'", "https://api.stripe.com"],
+    },
+  },
+}));
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many login attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const checkoutLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // ── Middleware ───────────────────────────────────────────
@@ -71,13 +104,14 @@ app.use(session({
     client: sessionDb,
     expired: { clear: true, intervalMs: 24 * 60 * 60 * 1000 },
   }),
-  secret: process.env.SESSION_SECRET || 'dev-secret-change-me',
+  secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? undefined : 'dev-secret-change-me'),
   resave: false,
   saveUninitialized: false,
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
+    sameSite: 'lax',
   },
 }));
 
@@ -96,7 +130,7 @@ app.use('/admin', adminRoutes);
 app.use('/api', apiRoutes);
 
 // ── Gift Card Checkout (public) ─────────────────────────
-app.post('/gift-cards/checkout', async (req, res) => {
+app.post('/gift-cards/checkout', checkoutLimiter, async (req, res) => {
   try {
     const { amount, purchaserName, purchaserEmail, recipientName, recipientEmail, sendTo, personalMessage } = req.body;
     console.log('[CHECKOUT] Request:', { amount, purchaserName, purchaserEmail, sendTo });
@@ -206,15 +240,14 @@ async function seedAdmin() {
     return;
   }
   try {
-    const hash = await bcrypt.hash(password, 12);
     const existing = db.get('SELECT id FROM users WHERE email = ?', [email]);
     if (existing) {
-      db.run('UPDATE users SET password_hash = ? WHERE email = ?', [hash, email]);
-      console.log(`[SEED] Admin password updated: ${email}`);
-    } else {
-      db.run('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)', [email, hash, 'Admin']);
-      console.log(`[SEED] Admin user created: ${email}`);
+      console.log(`[SEED] Admin user already exists: ${email}`);
+      return;
     }
+    const hash = await bcrypt.hash(password, 12);
+    db.run('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)', [email, hash, 'Admin']);
+    console.log(`[SEED] Admin user created: ${email}`);
   } catch (err) {
     console.error('[SEED] Error:', err.message);
   }

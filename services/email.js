@@ -1,6 +1,11 @@
 const { Resend } = require('resend');
 const { generateGiftCardPDF } = require('./pdf');
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
@@ -75,7 +80,7 @@ async function sendGiftCardEmail(giftCard, overrideEmail) {
           <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(0,0,0,0.02);border-left:3px solid #636845;border-radius:0 4px 4px 0;margin-bottom:20px;">
             <tr><td style="padding:15px 20px;">
               <p style="color:#999;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0 0 6px;">Personal Message</p>
-              <p style="color:#1a1a1a;font-size:14px;font-style:italic;line-height:1.5;margin:0;">"${giftCard.personal_message}"</p>
+              <p style="color:#1a1a1a;font-size:14px;font-style:italic;line-height:1.5;margin:0;">"${escapeHtml(giftCard.personal_message)}"</p>
             </td></tr>
           </table>` : ''}
 
