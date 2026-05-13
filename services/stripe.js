@@ -5,9 +5,9 @@ const db = require('../db/database');
 const { sendGiftCardEmail, sendPurchaserReceipt } = require('./email');
 
 function generateCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ';
   let code = '';
-  for (let i = 0; i < 10; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
   return code;
 }
 
