@@ -3,6 +3,13 @@
 <h1>Welcome, <%= userName %></h1>
 <p class="subtitle">Pala Pizza admin dashboard</p>
 
+<div style="margin-bottom:24px">
+  <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mid)">
+    <span style="width:8px;height:8px;border-radius:50%;background:<%= dbConnected ? '#4a7c59' : '#c44' %>"></span>
+    Database <%= dbConnected ? 'connected' : 'disconnected' %>
+  </span>
+</div>
+
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px">
   <div class="card" style="text-align:center">
     <div style="font-size:36px;font-weight:600;color:var(--olive)"><%= menuCount %></div>

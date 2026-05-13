@@ -35,11 +35,19 @@ router.get('/', async (req, res) => {
   const menuCount = db.get('SELECT COUNT(*) as count FROM menu_items');
   const giftCardCount = db.get("SELECT COUNT(*) as count FROM gift_cards WHERE status != 'pending'");
   const activeGiftCards = db.get("SELECT COUNT(*) as count FROM gift_cards WHERE status = 'active'");
+
+  let dbConnected = false;
+  try {
+    db.get('SELECT 1');
+    dbConnected = true;
+  } catch (e) {}
+
   res.render('admin/dashboard', {
     userName: req.session.userName,
     menuCount: parseInt(menuCount.count),
     giftCardCount: parseInt(giftCardCount.count),
     activeGiftCards: parseInt(activeGiftCards.count),
+    dbConnected,
   });
 });
 
