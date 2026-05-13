@@ -13,7 +13,7 @@ router.get('/login', (req, res) => {
 // Login POST
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  const user = await db.get('SELECT * FROM users WHERE email = $1', [email]);
+  const user = db.get('SELECT * FROM users WHERE email = ?', [email]);
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {
     return res.render('admin/login', { error: 'Invalid email or password.' });
   }
@@ -32,9 +32,9 @@ router.use(requireAuth);
 
 // Dashboard
 router.get('/', async (req, res) => {
-  const menuCount = await db.get('SELECT COUNT(*) as count FROM menu_items');
-  const giftCardCount = await db.get("SELECT COUNT(*) as count FROM gift_cards WHERE status != 'pending'");
-  const activeGiftCards = await db.get("SELECT COUNT(*) as count FROM gift_cards WHERE status = 'active'");
+  const menuCount = db.get('SELECT COUNT(*) as count FROM menu_items');
+  const giftCardCount = db.get("SELECT COUNT(*) as count FROM gift_cards WHERE status != 'pending'");
+  const activeGiftCards = db.get("SELECT COUNT(*) as count FROM gift_cards WHERE status = 'active'");
   res.render('admin/dashboard', {
     userName: req.session.userName,
     menuCount: parseInt(menuCount.count),
@@ -46,19 +46,19 @@ router.get('/', async (req, res) => {
 // Menu management
 router.get('/menu', async (req, res) => {
   const settings = {};
-  const rows = await db.all('SELECT key, value FROM site_settings');
+  const rows = db.all('SELECT key, value FROM site_settings');
   for (const row of rows) settings[row.key] = row.value;
-  const items = await db.all("SELECT * FROM menu_items ORDER BY CASE WHEN category = 'pizza' THEN 0 WHEN category = 'dessert' THEN 1 ELSE 2 END, sort_order, id");
+  const items = db.all("SELECT * FROM menu_items ORDER BY CASE WHEN category = 'pizza' THEN 0 WHEN category = 'dessert' THEN 1 ELSE 2 END, sort_order, id");
   res.render('admin/menu', { items, settings });
 });
 
 // Allergen management
 router.get('/allergens', async (req, res) => {
-  const menuItems = await db.all('SELECT * FROM menu_items ORDER BY sort_order, id');
-  const allergens = await db.all('SELECT * FROM allergens ORDER BY sort_order, id');
+  const menuItems = db.all('SELECT * FROM menu_items ORDER BY sort_order, id');
+  const allergens = db.all('SELECT * FROM allergens ORDER BY sort_order, id');
 
   // Build matrix
-  const allValues = await db.all('SELECT * FROM menu_allergens');
+  const allValues = db.all('SELECT * FROM menu_allergens');
   const valueMap = {};
   for (const v of allValues) {
     if (!valueMap[v.menu_item_id]) valueMap[v.menu_item_id] = {};
@@ -70,14 +70,15 @@ router.get('/allergens', async (req, res) => {
 
 // Hours management
 router.get('/hours', async (req, res) => {
-  const hours = await db.all('SELECT * FROM opening_hours ORDER BY sort_order');
+  const hours = db.all('SELECT * FROM opening_hours ORDER BY sort_order');
   res.render('admin/hours', { hours });
 });
 
 // Announcements (banner & popup)
 router.get('/announcements', async (req, res) => {
   const keys = ['banner_enabled', 'banner_text', 'popup_enabled', 'popup_title', 'popup_text'];
-  const rows = await db.all('SELECT key, value FROM site_settings WHERE key = ANY($1)', [keys]);
+  const placeholders = keys.map(() => '?').join(', ');
+  const rows = db.all(`SELECT key, value FROM site_settings WHERE key IN (${placeholders})`, keys);
   const settings = {};
   for (const row of rows) settings[row.key] = row.value;
   res.render('admin/announcements', { settings });
@@ -85,7 +86,7 @@ router.get('/announcements', async (req, res) => {
 
 // Settings
 router.get('/settings', async (req, res) => {
-  const settings = await db.all('SELECT * FROM site_settings ORDER BY key');
+  const settings = db.all('SELECT * FROM site_settings ORDER BY key');
   res.render('admin/settings', { settings });
 });
 
@@ -99,24 +100,23 @@ router.get('/gift-cards', async (req, res) => {
 
   let where = "WHERE status != 'pending'";
   const params = [];
-  let paramIdx = 1;
 
   if (status !== 'all') {
-    where += ` AND status = $${paramIdx++}`;
+    where += ' AND status = ?';
     params.push(status);
   }
   if (search) {
-    where += ` AND (code ILIKE $${paramIdx} OR purchaser_email ILIKE $${paramIdx} OR recipient_email ILIKE $${paramIdx})`;
-    params.push('%' + search + '%');
-    paramIdx++;
+    const searchParam = '%' + search + '%';
+    where += ' AND (code LIKE ? OR purchaser_email LIKE ? OR recipient_email LIKE ?)';
+    params.push(searchParam, searchParam, searchParam);
   }
 
-  const countResult = await db.get(`SELECT COUNT(*) as count FROM gift_cards ${where}`, params);
+  const countResult = db.get(`SELECT COUNT(*) as count FROM gift_cards ${where}`, params);
   const total = parseInt(countResult.count);
   const totalPages = Math.ceil(total / perPage);
 
-  const cards = await db.all(
-    `SELECT * FROM gift_cards ${where} ORDER BY purchased_at DESC NULLS LAST LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+  const cards = db.all(
+    `SELECT * FROM gift_cards ${where} ORDER BY purchased_at IS NULL, purchased_at DESC LIMIT ? OFFSET ?`,
     [...params, perPage, offset]
   );
 
@@ -130,10 +130,10 @@ router.get('/redeem', async (req, res) => {
   let transactions = [];
 
   if (code) {
-    card = await db.get('SELECT * FROM gift_cards WHERE code = $1', [code]);
+    card = db.get('SELECT * FROM gift_cards WHERE code = ?', [code]);
     if (card) {
-      transactions = await db.all(
-        'SELECT * FROM gift_card_transactions WHERE gift_card_id = $1 ORDER BY created_at DESC',
+      transactions = db.all(
+        'SELECT * FROM gift_card_transactions WHERE gift_card_id = ? ORDER BY created_at DESC',
         [card.id]
       );
     }

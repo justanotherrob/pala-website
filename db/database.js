@@ -1,61 +1,71 @@
-const { Pool } = require('pg');
+const Database = require('better-sqlite3');
+const path = require('path');
+const fs = require('fs');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '..', 'data', 'pala.db');
+
+// Ensure directory exists
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+const sqlite = new Database(dbPath);
+
+// Performance and safety pragmas
+sqlite.pragma('journal_mode = WAL');
+sqlite.pragma('foreign_keys = ON');
+
+// Convert JS booleans to 1/0 for SQLite
+function convertParams(params) {
+  return params.map(p => (p === true ? 1 : p === false ? 0 : p));
+}
 
 const db = {
-  query: (sql, params = []) => pool.query(sql, params),
-  get: async (sql, params = []) => {
-    const { rows } = await pool.query(sql, params);
-    return rows[0] || null;
+  get: (sql, params = []) => {
+    return sqlite.prepare(sql).get(...convertParams(params)) || null;
   },
-  all: async (sql, params = []) => {
-    const { rows } = await pool.query(sql, params);
-    return rows;
+  all: (sql, params = []) => {
+    return sqlite.prepare(sql).all(...convertParams(params));
   },
-  run: async (sql, params = []) => {
-    const result = await pool.query(sql, params);
-    return result;
+  run: (sql, params = []) => {
+    const result = sqlite.prepare(sql).run(...convertParams(params));
+    return { changes: result.changes, lastInsertRowid: result.lastInsertRowid };
   },
-  pool,
+  exec: (sql) => sqlite.exec(sql),
 };
 
-async function initDatabase() {
-  await pool.query(`
+function initDatabase() {
+  sqlite.exec(`
     -- Users (admin accounts)
     CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       name TEXT,
-      created_at TIMESTAMPTZ DEFAULT NOW()
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     -- Menu items
     CREATE TABLE IF NOT EXISTS menu_items (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       tag TEXT,
       price INTEGER,
       category TEXT NOT NULL DEFAULT 'pizza',
       sort_order INTEGER DEFAULT 0,
-      visible BOOLEAN DEFAULT true,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
+      visible INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     -- Allergens list
     CREATE TABLE IF NOT EXISTS allergens (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT UNIQUE NOT NULL,
       sort_order INTEGER DEFAULT 0
     );
 
     -- Menu item allergen matrix
     CREATE TABLE IF NOT EXISTS menu_allergens (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       menu_item_id INTEGER NOT NULL REFERENCES menu_items(id) ON DELETE CASCADE,
       allergen_id INTEGER NOT NULL REFERENCES allergens(id) ON DELETE CASCADE,
       value TEXT NOT NULL DEFAULT '',
@@ -64,11 +74,11 @@ async function initDatabase() {
 
     -- Opening hours
     CREATE TABLE IF NOT EXISTS opening_hours (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       label TEXT NOT NULL,
       times TEXT NOT NULL,
       sort_order INTEGER DEFAULT 0,
-      updated_at TIMESTAMPTZ DEFAULT NOW()
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     -- Site settings (key-value)
@@ -76,12 +86,12 @@ async function initDatabase() {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL DEFAULT '',
       label TEXT,
-      updated_at TIMESTAMPTZ DEFAULT NOW()
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     -- Gift cards
     CREATE TABLE IF NOT EXISTS gift_cards (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       code TEXT UNIQUE NOT NULL,
       initial_amount INTEGER NOT NULL,
       balance INTEGER NOT NULL,
@@ -95,33 +105,23 @@ async function initDatabase() {
       personal_message TEXT,
       stripe_session_id TEXT,
       stripe_payment_intent TEXT,
-      purchased_at TIMESTAMPTZ,
-      expires_at TIMESTAMPTZ,
-      created_at TIMESTAMPTZ DEFAULT NOW()
+      purchased_at DATETIME,
+      expires_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     -- Gift card transactions
     CREATE TABLE IF NOT EXISTS gift_card_transactions (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       gift_card_id INTEGER NOT NULL REFERENCES gift_cards(id),
       amount INTEGER NOT NULL,
       type TEXT NOT NULL,
       redeemed_by_user_id INTEGER REFERENCES users(id),
       note TEXT,
-      created_at TIMESTAMPTZ DEFAULT NOW()
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
-  `);
 
-  // Migrations — add columns if they don't exist (safe to re-run)
-  await pool.query(`
-    DO $$ BEGIN
-      ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'pizza';
-    EXCEPTION WHEN duplicate_column THEN NULL;
-    END $$;
-  `);
-
-  // Indexes
-  await pool.query(`
+    -- Indexes
     CREATE INDEX IF NOT EXISTS idx_gift_cards_code ON gift_cards(code);
     CREATE INDEX IF NOT EXISTS idx_gift_cards_status ON gift_cards(status);
     CREATE INDEX IF NOT EXISTS idx_gift_cards_stripe ON gift_cards(stripe_session_id);
@@ -130,39 +130,35 @@ async function initDatabase() {
   `);
 
   // Seed default allergens if empty
-  const allergenCount = await db.get('SELECT COUNT(*) as count FROM allergens');
+  const allergenCount = db.get('SELECT COUNT(*) as count FROM allergens');
   if (parseInt(allergenCount.count) === 0) {
     const defaultAllergens = [
       'Gluten', 'Crustaceans', 'Eggs', 'Fish', 'Peanuts',
       'Soybeans', 'Milk', 'Nuts', 'Celery', 'Mustard',
       'Sesame', 'Sulphites', 'Lupin', 'Molluscs'
     ];
+    const stmt = sqlite.prepare('INSERT OR IGNORE INTO allergens (name, sort_order) VALUES (?, ?)');
     for (let i = 0; i < defaultAllergens.length; i++) {
-      await pool.query(
-        'INSERT INTO allergens (name, sort_order) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING',
-        [defaultAllergens[i], i]
-      );
+      stmt.run(defaultAllergens[i], i);
     }
   }
 
   // Seed default opening hours if empty
-  const hoursCount = await db.get('SELECT COUNT(*) as count FROM opening_hours');
+  const hoursCount = db.get('SELECT COUNT(*) as count FROM opening_hours');
   if (parseInt(hoursCount.count) === 0) {
     const defaultHours = [
       { label: 'Thursday & Friday', times: '4 – 8pm', sort_order: 0 },
       { label: 'Saturday', times: '2 – 8pm', sort_order: 1 },
       { label: 'Sunday', times: '2 – 6pm', sort_order: 2 },
     ];
+    const stmt = sqlite.prepare('INSERT INTO opening_hours (label, times, sort_order) VALUES (?, ?, ?)');
     for (const h of defaultHours) {
-      await pool.query(
-        'INSERT INTO opening_hours (label, times, sort_order) VALUES ($1, $2, $3)',
-        [h.label, h.times, h.sort_order]
-      );
+      stmt.run(h.label, h.times, h.sort_order);
     }
   }
 
   // Seed site settings if empty
-  const settingsCount = await db.get('SELECT COUNT(*) as count FROM site_settings');
+  const settingsCount = db.get('SELECT COUNT(*) as count FROM site_settings');
   if (parseInt(settingsCount.count) === 0) {
     const defaults = [
       { key: 'site_name', value: 'Pala Pizza', label: 'Site Name' },
@@ -181,19 +177,16 @@ async function initDatabase() {
       { key: 'gift_cards_enabled', value: 'true', label: 'Gift Cards Enabled' },
       { key: 'pizza_price_label', value: '£6 / SLICE', label: 'Pizza Price Label (shown once below all slices)' },
     ];
+    const stmt = sqlite.prepare('INSERT OR IGNORE INTO site_settings (key, value, label) VALUES (?, ?, ?)');
     for (const s of defaults) {
-      await pool.query(
-        'INSERT INTO site_settings (key, value, label) VALUES ($1, $2, $3) ON CONFLICT (key) DO NOTHING',
-        [s.key, s.value, s.label]
-      );
+      stmt.run(s.key, s.value, s.label);
     }
   }
 
   // Ensure pizza_price_label exists (for existing databases)
-  await pool.query(
-    `INSERT INTO site_settings (key, value, label) VALUES ('pizza_price_label', '£6 / SLICE', 'Pizza Price Label (shown once below all slices)')
-     ON CONFLICT (key) DO NOTHING`
-  );
+  sqlite.prepare(
+    "INSERT OR IGNORE INTO site_settings (key, value, label) VALUES ('pizza_price_label', '£6 / SLICE', 'Pizza Price Label (shown once below all slices)')"
+  ).run();
 
   // Ensure announcement settings exist (for existing databases)
   const announcementDefaults = [
@@ -203,11 +196,9 @@ async function initDatabase() {
     { key: 'popup_title', value: '', label: 'Popup Title' },
     { key: 'popup_text', value: '', label: 'Popup Text' },
   ];
+  const settingsStmt = sqlite.prepare('INSERT OR IGNORE INTO site_settings (key, value, label) VALUES (?, ?, ?)');
   for (const s of announcementDefaults) {
-    await pool.query(
-      'INSERT INTO site_settings (key, value, label) VALUES ($1, $2, $3) ON CONFLICT (key) DO NOTHING',
-      [s.key, s.value, s.label]
-    );
+    settingsStmt.run(s.key, s.value, s.label);
   }
 
   console.log('Database initialized');

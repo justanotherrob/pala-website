@@ -20,9 +20,9 @@ router.post('/menu', async (req, res) => {
   if (!name) return res.status(400).json({ error: 'Name is required' });
 
   const cat = category || 'pizza';
-  const maxOrder = await db.get('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM menu_items WHERE category = $1', [cat]);
-  await db.run(
-    'INSERT INTO menu_items (name, tag, price, category, sort_order) VALUES ($1, $2, $3, $4, $5)',
+  const maxOrder = db.get('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM menu_items WHERE category = ?', [cat]);
+  db.run(
+    'INSERT INTO menu_items (name, tag, price, category, sort_order) VALUES (?, ?, ?, ?, ?)',
     [name, tag || null, price || null, cat, maxOrder.next]
   );
   cache.invalidate('menu');
@@ -35,25 +35,24 @@ router.post('/menu', async (req, res) => {
 // PUT /api/menu/:id — Update
 router.put('/menu/:id', async (req, res) => {
   const { name, tag, price, category, sort_order, visible } = req.body;
-  const item = await db.get('SELECT id FROM menu_items WHERE id = $1', [req.params.id]);
+  const item = db.get('SELECT id FROM menu_items WHERE id = ?', [req.params.id]);
   if (!item) return res.status(404).json({ error: 'Not found' });
 
   const updates = [];
   const params = [];
-  let idx = 1;
 
-  if (name !== undefined) { updates.push(`name = $${idx++}`); params.push(name); }
-  if (tag !== undefined) { updates.push(`tag = $${idx++}`); params.push(tag || null); }
-  if (price !== undefined) { updates.push(`price = $${idx++}`); params.push(price || null); }
-  if (category !== undefined) { updates.push(`category = $${idx++}`); params.push(category); }
-  if (sort_order !== undefined) { updates.push(`sort_order = $${idx++}`); params.push(sort_order); }
-  if (visible !== undefined) { updates.push(`visible = $${idx++}`); params.push(visible); }
+  if (name !== undefined) { updates.push('name = ?'); params.push(name); }
+  if (tag !== undefined) { updates.push('tag = ?'); params.push(tag || null); }
+  if (price !== undefined) { updates.push('price = ?'); params.push(price || null); }
+  if (category !== undefined) { updates.push('category = ?'); params.push(category); }
+  if (sort_order !== undefined) { updates.push('sort_order = ?'); params.push(sort_order); }
+  if (visible !== undefined) { updates.push('visible = ?'); params.push(visible); }
 
   if (updates.length === 0) return res.json({ success: true });
 
-  updates.push(`updated_at = NOW()`);
+  updates.push("updated_at = datetime('now')");
   params.push(req.params.id);
-  await db.run(`UPDATE menu_items SET ${updates.join(', ')} WHERE id = $${idx}`, params);
+  db.run(`UPDATE menu_items SET ${updates.join(', ')} WHERE id = ?`, params);
   cache.invalidate('menu');
   cache.invalidate('allergen');
   cache.invalidate('api-menu');
@@ -66,19 +65,19 @@ router.post('/menu/:id/move', async (req, res) => {
   const { direction } = req.body; // 'up' or 'down'
   if (!['up', 'down'].includes(direction)) return res.status(400).json({ error: 'Invalid direction' });
 
-  const item = await db.get('SELECT * FROM menu_items WHERE id = $1', [req.params.id]);
+  const item = db.get('SELECT * FROM menu_items WHERE id = ?', [req.params.id]);
   if (!item) return res.status(404).json({ error: 'Not found' });
 
   // Find the adjacent item in the same category
   let neighbour;
   if (direction === 'up') {
-    neighbour = await db.get(
-      'SELECT * FROM menu_items WHERE category = $1 AND sort_order < $2 ORDER BY sort_order DESC LIMIT 1',
+    neighbour = db.get(
+      'SELECT * FROM menu_items WHERE category = ? AND sort_order < ? ORDER BY sort_order DESC LIMIT 1',
       [item.category, item.sort_order]
     );
   } else {
-    neighbour = await db.get(
-      'SELECT * FROM menu_items WHERE category = $1 AND sort_order > $2 ORDER BY sort_order ASC LIMIT 1',
+    neighbour = db.get(
+      'SELECT * FROM menu_items WHERE category = ? AND sort_order > ? ORDER BY sort_order ASC LIMIT 1',
       [item.category, item.sort_order]
     );
   }
@@ -86,8 +85,8 @@ router.post('/menu/:id/move', async (req, res) => {
   if (!neighbour) return res.json({ success: true }); // Already at top/bottom
 
   // Swap sort_order values
-  await db.run('UPDATE menu_items SET sort_order = $1, updated_at = NOW() WHERE id = $2', [neighbour.sort_order, item.id]);
-  await db.run('UPDATE menu_items SET sort_order = $1, updated_at = NOW() WHERE id = $2', [item.sort_order, neighbour.id]);
+  db.run("UPDATE menu_items SET sort_order = ?, updated_at = datetime('now') WHERE id = ?", [neighbour.sort_order, item.id]);
+  db.run("UPDATE menu_items SET sort_order = ?, updated_at = datetime('now') WHERE id = ?", [item.sort_order, neighbour.id]);
 
   cache.invalidate('menu');
   cache.invalidate('api-menu');
@@ -96,7 +95,7 @@ router.post('/menu/:id/move', async (req, res) => {
 
 // DELETE /api/menu/:id
 router.delete('/menu/:id', async (req, res) => {
-  await db.run('DELETE FROM menu_items WHERE id = $1', [req.params.id]);
+  db.run('DELETE FROM menu_items WHERE id = ?', [req.params.id]);
   cache.invalidate('menu');
   cache.invalidate('allergen');
   cache.invalidate('api-menu');
@@ -110,8 +109,8 @@ router.delete('/menu/:id', async (req, res) => {
 router.post('/hours', async (req, res) => {
   const { label, times } = req.body;
   if (!label || !times) return res.status(400).json({ error: 'Label and times required' });
-  const maxOrder = await db.get('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM opening_hours');
-  await db.run('INSERT INTO opening_hours (label, times, sort_order) VALUES ($1, $2, $3)', [label, times, maxOrder.next]);
+  const maxOrder = db.get('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM opening_hours');
+  db.run('INSERT INTO opening_hours (label, times, sort_order) VALUES (?, ?, ?)', [label, times, maxOrder.next]);
   cache.invalidate('hours');
   res.json({ success: true });
 });
@@ -119,11 +118,11 @@ router.post('/hours', async (req, res) => {
 // PUT /api/hours/:id
 router.put('/hours/:id', async (req, res) => {
   const { label, times, sort_order } = req.body;
-  const hour = await db.get('SELECT id FROM opening_hours WHERE id = $1', [req.params.id]);
+  const hour = db.get('SELECT id FROM opening_hours WHERE id = ?', [req.params.id]);
   if (!hour) return res.status(404).json({ error: 'Not found' });
 
-  await db.run(
-    'UPDATE opening_hours SET label = COALESCE($1, label), times = COALESCE($2, times), sort_order = COALESCE($3, sort_order), updated_at = NOW() WHERE id = $4',
+  db.run(
+    "UPDATE opening_hours SET label = COALESCE(?, label), times = COALESCE(?, times), sort_order = COALESCE(?, sort_order), updated_at = datetime('now') WHERE id = ?",
     [label, times, sort_order, req.params.id]
   );
   cache.invalidate('hours');
@@ -132,7 +131,7 @@ router.put('/hours/:id', async (req, res) => {
 
 // DELETE /api/hours/:id
 router.delete('/hours/:id', async (req, res) => {
-  await db.run('DELETE FROM opening_hours WHERE id = $1', [req.params.id]);
+  db.run('DELETE FROM opening_hours WHERE id = ?', [req.params.id]);
   cache.invalidate('hours');
   res.json({ success: true });
 });
@@ -145,12 +144,12 @@ router.post('/allergens/value', async (req, res) => {
   if (!menuItemId || !allergenId) return res.status(400).json({ error: 'Missing IDs' });
 
   if (!value || value === '') {
-    await db.run('DELETE FROM menu_allergens WHERE menu_item_id = $1 AND allergen_id = $2', [menuItemId, allergenId]);
+    db.run('DELETE FROM menu_allergens WHERE menu_item_id = ? AND allergen_id = ?', [menuItemId, allergenId]);
   } else {
-    await db.run(
+    db.run(
       `INSERT INTO menu_allergens (menu_item_id, allergen_id, value)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (menu_item_id, allergen_id) DO UPDATE SET value = $3`,
+       VALUES (?, ?, ?)
+       ON CONFLICT (menu_item_id, allergen_id) DO UPDATE SET value = excluded.value`,
       [menuItemId, allergenId, value]
     );
   }
@@ -166,12 +165,12 @@ router.post('/settings/:key', async (req, res) => {
   const { key } = req.params;
   const { value } = req.body;
 
-  const setting = await db.get('SELECT key FROM site_settings WHERE key = $1', [key]);
+  const setting = db.get('SELECT key FROM site_settings WHERE key = ?', [key]);
   if (!setting) {
     // Create new setting
-    await db.run('INSERT INTO site_settings (key, value) VALUES ($1, $2)', [key, value]);
+    db.run('INSERT INTO site_settings (key, value) VALUES (?, ?)', [key, value]);
   } else {
-    await db.run('UPDATE site_settings SET value = $1, updated_at = NOW() WHERE key = $2', [value, key]);
+    db.run("UPDATE site_settings SET value = ?, updated_at = datetime('now') WHERE key = ?", [value, key]);
   }
   cache.invalidate('settings');
   res.json({ success: true, key, value });
@@ -181,7 +180,7 @@ router.post('/settings/:key', async (req, res) => {
 
 // POST /api/gift-cards/:id/resend-purchaser
 router.post('/gift-cards/:id/resend-purchaser', async (req, res) => {
-  const card = await db.get('SELECT * FROM gift_cards WHERE id = $1', [req.params.id]);
+  const card = db.get('SELECT * FROM gift_cards WHERE id = ?', [req.params.id]);
   if (!card) return res.status(404).json({ error: 'Gift card not found' });
   if (card.status === 'pending') return res.status(400).json({ error: 'Gift card is still pending' });
 
@@ -197,7 +196,7 @@ router.post('/gift-cards/:id/resend-purchaser', async (req, res) => {
 
 // POST /api/gift-cards/:id/resend-recipient
 router.post('/gift-cards/:id/resend-recipient', async (req, res) => {
-  const card = await db.get('SELECT * FROM gift_cards WHERE id = $1', [req.params.id]);
+  const card = db.get('SELECT * FROM gift_cards WHERE id = ?', [req.params.id]);
   if (!card) return res.status(404).json({ error: 'Gift card not found' });
   if (card.status === 'pending') return res.status(400).json({ error: 'Gift card is still pending' });
 
@@ -218,7 +217,7 @@ router.post('/gift-cards/:code/redeem', async (req, res) => {
   const { code } = req.params;
   const { amount } = req.body;
 
-  const card = await db.get('SELECT * FROM gift_cards WHERE code = $1', [code]);
+  const card = db.get('SELECT * FROM gift_cards WHERE code = ?', [code]);
   if (!card) return res.status(404).json({ error: 'Gift card not found' });
   if (card.status !== 'active' && card.status !== 'expired') {
     return res.status(400).json({ error: `Gift card is ${card.status}` });
@@ -227,19 +226,19 @@ router.post('/gift-cards/:code/redeem', async (req, res) => {
 
   // Auto-mark as expired if past expiry
   if (card.status === 'active' && card.expires_at && new Date(card.expires_at) < new Date()) {
-    await db.run("UPDATE gift_cards SET status = 'expired' WHERE id = $1", [card.id]);
+    db.run("UPDATE gift_cards SET status = 'expired' WHERE id = ?", [card.id]);
   }
 
   const redeemAmount = parseInt(amount);
   if (isNaN(redeemAmount) || redeemAmount <= 0) return res.status(400).json({ error: 'Invalid amount' });
-  if (redeemAmount > card.balance) return res.status(400).json({ error: `Amount exceeds balance of \u00A3${(card.balance / 100).toFixed(2)}` });
+  if (redeemAmount > card.balance) return res.status(400).json({ error: `Amount exceeds balance of £${(card.balance / 100).toFixed(2)}` });
 
   const newBalance = card.balance - redeemAmount;
   const newStatus = newBalance === 0 ? 'redeemed' : card.status;
 
-  await db.run('UPDATE gift_cards SET balance = $1, status = $2 WHERE id = $3', [newBalance, newStatus, card.id]);
-  await db.run(
-    'INSERT INTO gift_card_transactions (gift_card_id, amount, type, redeemed_by_user_id) VALUES ($1, $2, $3, $4)',
+  db.run('UPDATE gift_cards SET balance = ?, status = ? WHERE id = ?', [newBalance, newStatus, card.id]);
+  db.run(
+    'INSERT INTO gift_card_transactions (gift_card_id, amount, type, redeemed_by_user_id) VALUES (?, ?, ?, ?)',
     [card.id, redeemAmount, 'redemption', req.session.userId]
   );
 
@@ -248,7 +247,7 @@ router.post('/gift-cards/:code/redeem', async (req, res) => {
     newBalance,
     newStatus,
     redeemed: redeemAmount,
-    balanceFormatted: `\u00A3${(newBalance / 100).toFixed(2)}`
+    balanceFormatted: `£${(newBalance / 100).toFixed(2)}`
   });
 });
 
@@ -272,7 +271,7 @@ router.post('/gift-cards/import', upload.single('csv'), async (req, res) => {
         const code = (row['GIFT CODE'] || '').trim();
         if (!code) { skipped++; continue; }
 
-        const existing = await db.get('SELECT id FROM gift_cards WHERE code = $1', [code]);
+        const existing = db.get('SELECT id FROM gift_cards WHERE code = ?', [code]);
         if (existing) { skipped++; errors.push(`Row ${i + 2}: Code ${code} already exists`); continue; }
 
         const initialStr = (row['INITIAL VALUE'] || '0').replace(/[^0-9.]/g, '');
@@ -287,16 +286,16 @@ router.post('/gift-cards/import', upload.single('csv'), async (req, res) => {
         const purchaseDate = new Date(purchasedAt);
         const expiresAt = new Date(purchaseDate.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString();
 
-        const result = await db.query(
+        const result = db.run(
           `INSERT INTO gift_cards (code, initial_amount, balance, currency, status, purchaser_email, recipient_email, purchased_at, expires_at)
-           VALUES ($1, $2, $3, 'GBP', $4, $5, $6, $7, $8) RETURNING id`,
+           VALUES (?, ?, ?, 'GBP', ?, ?, ?, ?, ?)`,
           [code, initialAmount, balance, status, (row['PURCHASER EMAIL'] || '').trim(), (row['RECIPIENT EMAIL'] || '').trim(), purchasedAt, expiresAt]
         );
 
-        const newId = result.rows[0].id;
-        await db.run(
-          `INSERT INTO gift_card_transactions (gift_card_id, amount, type, note) VALUES ($1, $2, 'import', $3)`,
-          [newId, initialAmount, `Imported from CSV row ${i + 2}`]
+        const newId = result.lastInsertRowid;
+        db.run(
+          'INSERT INTO gift_card_transactions (gift_card_id, amount, type, note) VALUES (?, ?, ?, ?)',
+          [newId, initialAmount, 'import', `Imported from CSV row ${i + 2}`]
         );
         imported++;
       } catch (err) {
@@ -316,7 +315,7 @@ router.post('/gift-cards/import', upload.single('csv'), async (req, res) => {
 // GET /api/gift-cards/export
 router.get('/gift-cards/export', async (req, res) => {
   try {
-    const cards = await db.all(`
+    const cards = db.all(`
       SELECT code, initial_amount, balance, currency, status,
              purchaser_email, purchaser_name, recipient_email, recipient_name,
              send_to, purchased_at, expires_at

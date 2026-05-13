@@ -3,9 +3,11 @@ require('dotenv').config();
 const express = require('express');
 const compression = require('compression');
 const session = require('express-session');
-const PgSession = require('connect-pg-simple')(session);
+const SqliteStore = require('better-sqlite3-session-store')(session);
+const Database = require('better-sqlite3');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
 const stripe = process.env.STRIPE_SECRET_KEY
   ? require('stripe')(process.env.STRIPE_SECRET_KEY)
   : null;
@@ -57,11 +59,17 @@ app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Session store
+// Session store (SQLite)
+const sessionDbPath = process.env.DATABASE_PATH
+  ? path.join(path.dirname(process.env.DATABASE_PATH), 'sessions.db')
+  : path.join(__dirname, 'data', 'sessions.db');
+fs.mkdirSync(path.dirname(sessionDbPath), { recursive: true });
+const sessionDb = new Database(sessionDbPath);
+
 app.use(session({
-  store: new PgSession({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
+  store: new SqliteStore({
+    client: sessionDb,
+    expired: { clear: true, intervalMs: 24 * 60 * 60 * 1000 },
   }),
   secret: process.env.SESSION_SECRET || 'dev-secret-change-me',
   resave: false,
@@ -94,7 +102,7 @@ app.post('/gift-cards/checkout', async (req, res) => {
     console.log('[CHECKOUT] Request:', { amount, purchaserName, purchaserEmail, sendTo });
 
     // Check if gift cards are enabled
-    const gcSetting = await db.get("SELECT value FROM site_settings WHERE key = 'gift_cards_enabled'");
+    const gcSetting = db.get("SELECT value FROM site_settings WHERE key = ?", ['gift_cards_enabled']);
     if (!gcSetting || gcSetting.value !== 'true') {
       return res.status(403).json({ error: 'Gift cards are not currently available.' });
     }
@@ -109,7 +117,7 @@ app.post('/gift-cards/checkout', async (req, res) => {
 
     const amountPence = parseInt(amount);
     if (isNaN(amountPence) || amountPence < 1500 || amountPence > 15000) {
-      return res.status(400).json({ error: 'Amount must be between \u00A315 and \u00A3150' });
+      return res.status(400).json({ error: 'Amount must be between £15 and £150' });
     }
 
     if (sendTo === 'friend' && (!recipientName || !recipientEmail)) {
@@ -142,8 +150,8 @@ app.get('/gift-cards/status', async (req, res) => {
   const sessionId = req.query.session_id;
   if (!sessionId) return res.status(400).json({ error: 'Missing session_id' });
 
-  const card = await db.get(
-    'SELECT status, initial_amount, recipient_email, recipient_name, purchaser_email, send_to FROM gift_cards WHERE stripe_session_id = $1',
+  const card = db.get(
+    'SELECT status, initial_amount, recipient_email, recipient_name, purchaser_email, send_to FROM gift_cards WHERE stripe_session_id = ?',
     [sessionId]
   );
   if (!card) return res.json({ status: 'not_found' });
@@ -174,12 +182,12 @@ app.use((err, req, res, next) => {
 });
 
 // ── Cleanup: stale pending gift cards ───────────────────
-async function cleanupPendingGiftCards() {
+function cleanupPendingGiftCards() {
   try {
-    const result = await db.run(
-      "DELETE FROM gift_cards WHERE status = 'pending' AND created_at < NOW() - INTERVAL '24 hours'"
+    const result = db.run(
+      "DELETE FROM gift_cards WHERE status = 'pending' AND created_at < datetime('now', '-24 hours')"
     );
-    const count = result.rowCount || 0;
+    const count = result.changes || 0;
     if (count > 0) {
       console.log(`[CLEANUP] Removed ${count} abandoned pending gift card(s)`);
     }
@@ -199,12 +207,12 @@ async function seedAdmin() {
   }
   try {
     const hash = await bcrypt.hash(password, 12);
-    const existing = await db.get('SELECT id FROM users WHERE email = $1', [email]);
+    const existing = db.get('SELECT id FROM users WHERE email = ?', [email]);
     if (existing) {
-      await db.run('UPDATE users SET password_hash = $1 WHERE email = $2', [hash, email]);
+      db.run('UPDATE users SET password_hash = ? WHERE email = ?', [hash, email]);
       console.log(`[SEED] Admin password updated: ${email}`);
     } else {
-      await db.run('INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3)', [email, hash, 'Admin']);
+      db.run('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)', [email, hash, 'Admin']);
       console.log(`[SEED] Admin user created: ${email}`);
     }
   } catch (err) {
@@ -214,10 +222,10 @@ async function seedAdmin() {
 
 // ── Start ───────────────────────────────────────────────
 async function start() {
-  await initDatabase();
+  initDatabase();
   await seedAdmin();
 
-  await cleanupPendingGiftCards();
+  cleanupPendingGiftCards();
   setInterval(cleanupPendingGiftCards, 24 * 60 * 60 * 1000);
 
   app.listen(PORT, () => {

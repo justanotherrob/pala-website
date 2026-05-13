@@ -11,12 +11,12 @@ function generateCode() {
   return code;
 }
 
-async function generateUniqueCode() {
+function generateUniqueCode() {
   let code;
   let attempts = 0;
   do {
     code = generateCode();
-    const existing = await db.get('SELECT id FROM gift_cards WHERE code = $1', [code]);
+    const existing = db.get('SELECT id FROM gift_cards WHERE code = ?', [code]);
     if (!existing) return code;
     attempts++;
   } while (attempts < 100);
@@ -34,7 +34,7 @@ async function createCheckoutSession({ amount, purchaserName, purchaserEmail, re
       price_data: {
         currency: 'gbp',
         product_data: {
-          name: `Pala Pizza Gift Card \u00A3${(amount / 100).toFixed(0)}`,
+          name: `Pala Pizza Gift Card £${(amount / 100).toFixed(0)}`,
           description: 'Redeemable at Pala Pizza, Leith, Edinburgh',
         },
         unit_amount: amount,
@@ -55,9 +55,9 @@ async function createCheckoutSession({ amount, purchaserName, purchaserEmail, re
     },
   });
 
-  await db.run(`
+  db.run(`
     INSERT INTO gift_cards (code, initial_amount, balance, status, purchaser_email, purchaser_name, recipient_email, recipient_name, send_to, personal_message, stripe_session_id, expires_at)
-    VALUES ($1, $2, $3, 'pending', $4, $5, $6, $7, $8, $9, $10, $11)
+    VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)
   `, [
     'PENDING-' + session.id.slice(-12),
     amount, amount,
@@ -84,7 +84,7 @@ async function handleWebhook(event) {
       return;
     }
 
-    const card = await db.get('SELECT * FROM gift_cards WHERE stripe_session_id = $1', [session.id]);
+    const card = db.get('SELECT * FROM gift_cards WHERE stripe_session_id = ?', [session.id]);
     if (!card) {
       console.error('[STRIPE] Gift card not found for session:', session.id);
       return;
@@ -95,22 +95,22 @@ async function handleWebhook(event) {
       return;
     }
 
-    const code = await generateUniqueCode();
+    const code = generateUniqueCode();
     const now = new Date().toISOString();
 
-    await db.run(`
-      UPDATE gift_cards SET code = $1, status = 'active', stripe_payment_intent = $2, purchased_at = $3
-      WHERE id = $4
-    `, [code, session.payment_intent, now, card.id]);
+    db.run(
+      "UPDATE gift_cards SET code = ?, status = 'active', stripe_payment_intent = ?, purchased_at = ? WHERE id = ?",
+      [code, session.payment_intent, now, card.id]
+    );
     console.log('[STRIPE] Card activated with code:', code);
 
-    await db.run(`
-      INSERT INTO gift_card_transactions (gift_card_id, amount, type, note)
-      VALUES ($1, $2, 'purchase', 'Stripe payment')
-    `, [card.id, card.initial_amount]);
+    db.run(
+      "INSERT INTO gift_card_transactions (gift_card_id, amount, type, note) VALUES (?, ?, 'purchase', 'Stripe payment')",
+      [card.id, card.initial_amount]
+    );
 
     try {
-      const updatedCard = await db.get('SELECT * FROM gift_cards WHERE id = $1', [card.id]);
+      const updatedCard = db.get('SELECT * FROM gift_cards WHERE id = ?', [card.id]);
       await sendGiftCardEmail(updatedCard);
       console.log('[STRIPE] Gift card email sent');
       if (updatedCard.send_to === 'friend') {
