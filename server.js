@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const compression = require('compression');
 const session = require('express-session');
 const PgSession = require('connect-pg-simple')(session);
 const bodyParser = require('body-parser');
@@ -52,6 +53,7 @@ app.post('/webhook/stripe', bodyParser.raw({ type: 'application/json' }), async 
 });
 
 // ── Middleware ───────────────────────────────────────────
+app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -71,8 +73,10 @@ app.use(session({
   },
 }));
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+// Static files (cache images/css/js for 7 days)
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '7d',
+}));
 
 // ── Routes ──────────────────────────────────────────────
 const publicRoutes = require('./routes/public');

@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const db = require('../db/database');
+const cache = require('../services/cache');
 const { requireAuth } = require('../middleware/auth');
 const { sendGiftCardEmail, sendPurchaserReceipt } = require('../services/email');
 
@@ -24,6 +25,10 @@ router.post('/menu', async (req, res) => {
     'INSERT INTO menu_items (name, tag, price, category, sort_order) VALUES ($1, $2, $3, $4, $5)',
     [name, tag || null, price || null, cat, maxOrder.next]
   );
+  cache.invalidate('menu');
+  cache.invalidate('allergen');
+  cache.invalidate('api-menu');
+  cache.invalidate('api-allergen');
   res.json({ success: true });
 });
 
@@ -49,6 +54,10 @@ router.put('/menu/:id', async (req, res) => {
   updates.push(`updated_at = NOW()`);
   params.push(req.params.id);
   await db.run(`UPDATE menu_items SET ${updates.join(', ')} WHERE id = $${idx}`, params);
+  cache.invalidate('menu');
+  cache.invalidate('allergen');
+  cache.invalidate('api-menu');
+  cache.invalidate('api-allergen');
   res.json({ success: true });
 });
 
@@ -80,12 +89,18 @@ router.post('/menu/:id/move', async (req, res) => {
   await db.run('UPDATE menu_items SET sort_order = $1, updated_at = NOW() WHERE id = $2', [neighbour.sort_order, item.id]);
   await db.run('UPDATE menu_items SET sort_order = $1, updated_at = NOW() WHERE id = $2', [item.sort_order, neighbour.id]);
 
+  cache.invalidate('menu');
+  cache.invalidate('api-menu');
   res.json({ success: true });
 });
 
 // DELETE /api/menu/:id
 router.delete('/menu/:id', async (req, res) => {
   await db.run('DELETE FROM menu_items WHERE id = $1', [req.params.id]);
+  cache.invalidate('menu');
+  cache.invalidate('allergen');
+  cache.invalidate('api-menu');
+  cache.invalidate('api-allergen');
   res.json({ success: true });
 });
 
@@ -97,6 +112,7 @@ router.post('/hours', async (req, res) => {
   if (!label || !times) return res.status(400).json({ error: 'Label and times required' });
   const maxOrder = await db.get('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM opening_hours');
   await db.run('INSERT INTO opening_hours (label, times, sort_order) VALUES ($1, $2, $3)', [label, times, maxOrder.next]);
+  cache.invalidate('hours');
   res.json({ success: true });
 });
 
@@ -110,12 +126,14 @@ router.put('/hours/:id', async (req, res) => {
     'UPDATE opening_hours SET label = COALESCE($1, label), times = COALESCE($2, times), sort_order = COALESCE($3, sort_order), updated_at = NOW() WHERE id = $4',
     [label, times, sort_order, req.params.id]
   );
+  cache.invalidate('hours');
   res.json({ success: true });
 });
 
 // DELETE /api/hours/:id
 router.delete('/hours/:id', async (req, res) => {
   await db.run('DELETE FROM opening_hours WHERE id = $1', [req.params.id]);
+  cache.invalidate('hours');
   res.json({ success: true });
 });
 
@@ -136,6 +154,8 @@ router.post('/allergens/value', async (req, res) => {
       [menuItemId, allergenId, value]
     );
   }
+  cache.invalidate('allergen');
+  cache.invalidate('api-allergen');
   res.json({ success: true });
 });
 
@@ -153,6 +173,7 @@ router.post('/settings/:key', async (req, res) => {
   } else {
     await db.run('UPDATE site_settings SET value = $1, updated_at = NOW() WHERE key = $2', [value, key]);
   }
+  cache.invalidate('settings');
   res.json({ success: true, key, value });
 });
 
