@@ -40,32 +40,6 @@
 }
 .cell-popover .pop-btn:hover { background: rgba(99,104,69,0.08); }
 .cell-popover .pop-btn.active { background: #636845; color: #fff; border-color: #636845; }
-.cell-popover .pop-custom {
-  display: flex;
-  gap: 6px;
-}
-.cell-popover .pop-custom input {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 13px;
-  outline: none;
-  min-width: 0;
-}
-.cell-popover .pop-custom input:focus { border-color: #636845; }
-.cell-popover .pop-custom button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: #636845;
-  color: #fff;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
 .cell-popover-bg {
   position: fixed;
   inset: 0;
@@ -95,12 +69,12 @@
               onclick="openPopover(event, this)">
             <% if (['y','yes','true','1','contains'].includes(vl)) { %>
               <span style="color:#636845;font-weight:600">&#10003;</span>
-            <% } else if (['n','no','false','0'].includes(vl)) { %>
+            <% } else if (vl === 'trace') { %>
+              <span style="color:#8a6d20;font-size:12px;font-weight:500">MC</span>
+            <% } else if (['n','no','false','0',''].includes(vl) || !val) { %>
               <span style="opacity:0.3">&ndash;</span>
-            <% } else if (val) { %>
-              <span style="font-size:12px"><%= val %></span>
             <% } else { %>
-              <span style="opacity:0.15">&middot;</span>
+              <span style="opacity:0.3">&ndash;</span>
             <% } %>
           </td>
         <% }) %>
@@ -116,12 +90,10 @@ function renderCell(td, value) {
   td.dataset.value = value;
   if (['y','yes','true','1','contains'].includes(vl)) {
     td.innerHTML = '<span style="color:#636845;font-weight:600">&#10003;</span>';
-  } else if (['n','no','false','0'].includes(vl)) {
-    td.innerHTML = '<span style="opacity:0.3">&ndash;</span>';
-  } else if (value) {
-    td.innerHTML = '<span style="font-size:12px">' + value.replace(/</g,'&lt;') + '</span>';
+  } else if (vl === 'trace') {
+    td.innerHTML = '<span style="color:#8a6d20;font-size:12px;font-weight:500">MC</span>';
   } else {
-    td.innerHTML = '<span style="opacity:0.15">&middot;</span>';
+    td.innerHTML = '<span style="opacity:0.3">&ndash;</span>';
   }
 }
 
@@ -148,8 +120,8 @@ function openPopover(e, td) {
   var current = td.dataset.value;
   var cl = current.toLowerCase();
   var isYes = ['y','yes','true','1','contains'].includes(cl);
-  var isNo = ['n','no','false','0'].includes(cl);
-  var isCustom = current && !isYes && !isNo;
+  var isTrace = cl === 'trace';
+  var isDash = !isYes && !isTrace;
 
   // Background overlay to catch outside clicks
   var bg = document.createElement('div');
@@ -162,13 +134,9 @@ function openPopover(e, td) {
   pop.className = 'cell-popover';
   pop.innerHTML =
     '<div class="pop-btns">' +
-      '<button class="pop-btn' + (isYes ? ' active' : '') + '" data-val="yes">&#10003; Yes</button>' +
-      '<button class="pop-btn' + (isNo ? ' active' : '') + '" data-val="no">&ndash; No</button>' +
-      '<button class="pop-btn' + (!current ? ' active' : '') + '" data-val="">Clear</button>' +
-    '</div>' +
-    '<div class="pop-custom">' +
-      '<input type="text" placeholder="Custom text\u2026" value="' + (isCustom ? current.replace(/"/g,'&quot;') : '') + '">' +
-      '<button>Save</button>' +
+      '<button class="pop-btn' + (isYes ? ' active' : '') + '" data-val="yes">&#10003;</button>' +
+      '<button class="pop-btn' + (isDash ? ' active' : '') + '" data-val="">&ndash;</button>' +
+      '<button class="pop-btn' + (isTrace ? ' active' : '') + '" data-val="trace">&#9888; May Contain</button>' +
     '</div>';
 
   document.body.appendChild(pop);
@@ -195,21 +163,6 @@ function openPopover(e, td) {
       closePopover();
     };
   });
-
-  // Custom text save
-  var customInput = pop.querySelector('.pop-custom input');
-  var customBtn = pop.querySelector('.pop-custom button');
-  customBtn.onclick = function() {
-    var val = customInput.value.trim();
-    if (val) {
-      saveValue(td, val);
-      closePopover();
-    }
-  };
-  customInput.onkeydown = function(ev) {
-    if (ev.key === 'Enter') { ev.preventDefault(); customBtn.click(); }
-    if (ev.key === 'Escape') { ev.preventDefault(); closePopover(); }
-  };
 }
 </script>
 

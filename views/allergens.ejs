@@ -125,10 +125,10 @@ td.other{font-size:12px;opacity:0.8}
               <% const vl = (v || '').trim().toLowerCase(); %>
               <% if (['y','yes','true','1','contains'].includes(vl)) { %>
                 <td class="yes">&#10003;</td>
-              <% } else if (!v || ['n','no','false','0'].includes(vl)) { %>
-                <td class="no">&ndash;</td>
+              <% } else if (vl === 'trace') { %>
+                <td class="other" title="May contain trace">MC</td>
               <% } else { %>
-                <td class="other"><%= v %></td>
+                <td class="no">&ndash;</td>
               <% } %>
             <% }) %>
           </tr>
@@ -142,11 +142,11 @@ td.other{font-size:12px;opacity:0.8}
     <% matrix.forEach(row => { %>
     <article class="card" data-name="<%= row.name.toLowerCase() %>">
       <div class="card-title"><%= row.name %></div>
-      <% const present = []; const advisory = []; %>
+      <% const present = []; const trace = []; %>
       <% row.values.forEach((v, i) => { %>
         <% const vl = (v || '').trim().toLowerCase(); %>
         <% if (['y','yes','true','1','contains'].includes(vl)) present.push(allergens[i].name); %>
-        <% if (v && !['y','yes','true','1','contains','n','no','false','0'].includes(vl)) advisory.push({name: allergens[i].name, note: v}); %>
+        <% if (vl === 'trace') trace.push(allergens[i].name); %>
       <% }) %>
       <% if (present.length) { %>
         <div class="chip-row">
@@ -154,15 +154,16 @@ td.other{font-size:12px;opacity:0.8}
           <span class="chip chip--contains"><strong>&#10003;</strong><%= a %></span>
           <% }) %>
         </div>
-      <% } else { %>
-        <p class="empty-note">No allergens marked as present.</p>
       <% } %>
-      <% if (advisory.length) { %>
+      <% if (trace.length) { %>
         <div class="chip-row">
-          <% advisory.forEach(a => { %>
-          <span class="chip chip--advisory"><strong>&#9888;</strong><%= a.name %> &ndash; <%= a.note %></span>
+          <% trace.forEach(a => { %>
+          <span class="chip chip--advisory"><strong>&#9888;</strong><%= a %> &ndash; May Contain Trace</span>
           <% }) %>
         </div>
+      <% } %>
+      <% if (!present.length && !trace.length) { %>
+        <p class="empty-note">No allergens listed.</p>
       <% } %>
     </article>
     <% }) %>
