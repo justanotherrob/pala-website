@@ -70,18 +70,26 @@
   </div>
 
   <% if (card.balance > 0 && (card.status === 'active' || card.status === 'expired')) { %>
-  <!-- Full redeem -->
-  <button class="btn btn-primary" style="width:100%;padding:16px;font-size:15px;margin-bottom:16px" onclick="redeemAmount(<%= card.balance %>)">
-    Redeem Full Balance &mdash; &pound;<%= (card.balance / 100).toFixed(2) %>
-  </button>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <!-- Redeem all -->
+    <div style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:24px;text-align:center">
+      <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px">Redeem All</div>
+      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="redeemAmount(<%= card.balance %>)">
+        Redeem &pound;<%= (card.balance / 100).toFixed(2) %>
+      </button>
+      <div style="font-size:12px;color:var(--mid);margin-top:8px">Use the full balance</div>
+    </div>
 
-  <div style="text-align:center;color:var(--mid);font-size:13px;margin-bottom:16px">or enter a custom amount</div>
-
-  <!-- Custom redeem -->
-  <div style="display:flex;gap:12px">
-    <input type="number" id="customRedeem" min="0.01" max="<%= (card.balance / 100).toFixed(2) %>" step="0.01" placeholder="e.g. 12.50"
-           style="flex:1;font-family:'Cabin',sans-serif;font-size:16px;padding:12px 16px;border:1px solid rgba(0,0,0,0.1);border-radius:10px;outline:none">
-    <button class="btn btn-outline" onclick="redeemCustom()">Redeem</button>
+    <!-- Redeem partial -->
+    <div style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:24px;text-align:center">
+      <div style="font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px">Redeem Partial</div>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="customRedeem" min="0.01" max="<%= (card.balance / 100).toFixed(2) %>" step="0.01" placeholder="&pound; amount"
+               style="flex:1;font-size:15px;padding:14px 16px;border:1px solid rgba(0,0,0,0.1);border-radius:10px;outline:none;text-align:center">
+        <button class="btn btn-outline" style="padding:14px 20px" onclick="redeemCustom()">Redeem</button>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:8px">Enter a custom amount</div>
+    </div>
   </div>
   <% } %>
 </div>
