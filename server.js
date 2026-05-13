@@ -67,6 +67,7 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "https:"],
       frameSrc: ["https://js.stripe.com"],
       connectSrc: ["'self'", "https://api.stripe.com"],
+      scriptSrcAttr: ["'unsafe-inline'"],
     },
   },
 }));
