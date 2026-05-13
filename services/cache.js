@@ -29,12 +29,12 @@ function invalidateAll() {
   store.clear();
 }
 
-// Wraps an async function with caching
+// Wraps a function with caching
 function cached(key, fn, ttl = DEFAULT_TTL) {
-  return async function (...args) {
+  return function (...args) {
     const hit = get(key);
     if (hit !== null) return hit;
-    const result = await fn(...args);
+    const result = fn(...args);
     set(key, result, ttl);
     return result;
   };
