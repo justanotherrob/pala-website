@@ -23,7 +23,7 @@
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 80px;gap:12px;align-items:end">
       <div class="form-group" style="margin-bottom:0">
         <label>Name</label>
-        <input type="text" id="itemName" required>
+        <input type="text" id="itemName" required style="text-transform:uppercase">
       </div>
       <div class="form-group" style="margin-bottom:0">
         <label>Tag (optional)</label>
@@ -172,7 +172,7 @@ async function saveItem(e) {
   e.preventDefault();
   const id = document.getElementById('editId').value;
   const data = {
-    name: document.getElementById('itemName').value,
+    name: document.getElementById('itemName').value.toUpperCase(),
     tag: document.getElementById('itemTag').value,
     price: parseInt(document.getElementById('itemPrice').value) || null,
     category: document.getElementById('itemCategory').value,
