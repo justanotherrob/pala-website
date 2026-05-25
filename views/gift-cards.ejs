@@ -319,8 +319,16 @@ document.getElementById('buyBtn').addEventListener('click', async () => {
   const purchaserName = document.getElementById('purchaserName').value.trim();
   const purchaserEmail = document.getElementById('purchaserEmail').value.trim();
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   if (!purchaserName || !purchaserEmail) {
     errEl.textContent = 'Please enter your name and email.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  if (!emailRegex.test(purchaserEmail)) {
+    errEl.textContent = 'Please enter a valid email address.';
     errEl.classList.add('visible');
     return;
   }
@@ -342,6 +350,11 @@ document.getElementById('buyBtn').addEventListener('click', async () => {
     payload.personalMessage = document.getElementById('personalMessage').value.trim();
     if (!payload.recipientName || !payload.recipientEmail) {
       errEl.textContent = "Please enter the recipient's name and email.";
+      errEl.classList.add('visible');
+      return;
+    }
+    if (!emailRegex.test(payload.recipientEmail)) {
+      errEl.textContent = "Please enter a valid recipient email address.";
       errEl.classList.add('visible');
       return;
     }

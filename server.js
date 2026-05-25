@@ -146,8 +146,14 @@ app.post('/gift-cards/checkout', checkoutLimiter, async (req, res) => {
       return res.status(503).json({ error: 'Payment system is not configured. Please try again later.' });
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!purchaserName || !purchaserEmail) {
       return res.status(400).json({ error: 'Please enter your name and email.' });
+    }
+
+    if (!emailRegex.test(purchaserEmail)) {
+      return res.status(400).json({ error: 'Please enter a valid email address.' });
     }
 
     const amountPence = parseInt(amount);
@@ -157,6 +163,10 @@ app.post('/gift-cards/checkout', checkoutLimiter, async (req, res) => {
 
     if (sendTo === 'friend' && (!recipientName || !recipientEmail)) {
       return res.status(400).json({ error: 'Please enter recipient details.' });
+    }
+
+    if (sendTo === 'friend' && recipientEmail && !emailRegex.test(recipientEmail)) {
+      return res.status(400).json({ error: 'Please enter a valid recipient email address.' });
     }
 
     const session = await createCheckoutSession({

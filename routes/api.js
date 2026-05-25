@@ -178,6 +178,8 @@ router.post('/settings/:key', async (req, res) => {
 
 // ── Gift Card Resend Emails ─────────────────────────────
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // POST /api/gift-cards/:id/resend-purchaser
 router.post('/gift-cards/:id/resend-purchaser', async (req, res) => {
   const card = db.get('SELECT * FROM gift_cards WHERE id = ?', [req.params.id]);
@@ -185,6 +187,7 @@ router.post('/gift-cards/:id/resend-purchaser', async (req, res) => {
   if (card.status === 'pending') return res.status(400).json({ error: 'Gift card is still pending' });
 
   const email = req.body.email || card.purchaser_email;
+  if (!email || !emailRegex.test(email)) return res.status(400).json({ error: 'Invalid email address' });
   try {
     await sendPurchaserReceipt(card, email);
     res.json({ success: true, sentTo: email });
@@ -201,6 +204,7 @@ router.post('/gift-cards/:id/resend-recipient', async (req, res) => {
   if (card.status === 'pending') return res.status(400).json({ error: 'Gift card is still pending' });
 
   const email = req.body.email || (card.send_to === 'friend' ? card.recipient_email : card.purchaser_email);
+  if (!email || !emailRegex.test(email)) return res.status(400).json({ error: 'Invalid email address' });
   try {
     await sendGiftCardEmail(card, email);
     res.json({ success: true, sentTo: email });
