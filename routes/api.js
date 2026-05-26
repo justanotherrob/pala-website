@@ -136,6 +136,37 @@ router.delete('/hours/:id', async (req, res) => {
   res.json({ success: true });
 });
 
+// ── Temporary Hours ────────────────────────────────────
+
+// POST /api/temp-hours — Create
+router.post('/temp-hours', async (req, res) => {
+  const { date, label, times } = req.body;
+  if (!date || !label || !times) return res.status(400).json({ error: 'Date, label and times required' });
+  db.run('INSERT INTO temporary_hours (date, label, times) VALUES (?, ?, ?)', [date, label, times]);
+  cache.invalidate('temp-hours');
+  res.json({ success: true });
+});
+
+// PUT /api/temp-hours/:id
+router.put('/temp-hours/:id', async (req, res) => {
+  const { date, label, times } = req.body;
+  const row = db.get('SELECT id FROM temporary_hours WHERE id = ?', [req.params.id]);
+  if (!row) return res.status(404).json({ error: 'Not found' });
+  db.run(
+    "UPDATE temporary_hours SET date = COALESCE(?, date), label = COALESCE(?, label), times = COALESCE(?, times) WHERE id = ?",
+    [date, label, times, req.params.id]
+  );
+  cache.invalidate('temp-hours');
+  res.json({ success: true });
+});
+
+// DELETE /api/temp-hours/:id
+router.delete('/temp-hours/:id', async (req, res) => {
+  db.run('DELETE FROM temporary_hours WHERE id = ?', [req.params.id]);
+  cache.invalidate('temp-hours');
+  res.json({ success: true });
+});
+
 // ── Allergen Values ─────────────────────────────────────
 
 // POST /api/allergens/value — Set a single cell

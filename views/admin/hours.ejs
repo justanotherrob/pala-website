@@ -50,6 +50,62 @@
   </table>
 </div>
 
+<div style="display:flex;justify-content:space-between;align-items:center;margin:40px 0 24px">
+  <div>
+    <h2 style="font-size:22px;font-weight:400">Temporary Hours</h2>
+    <p class="subtitle" style="margin-bottom:0">Date-specific hours for bank holidays, events, etc. Automatically hidden once the date passes.</p>
+  </div>
+  <button class="btn btn-primary" onclick="showAddTemp()">+ Add Temporary</button>
+</div>
+
+<div id="addTempForm" class="card" style="display:none;margin-bottom:24px">
+  <h2 id="tempFormTitle">Add Temporary Hours</h2>
+  <form onsubmit="saveTemp(event)">
+    <input type="hidden" id="tempEditId" value="">
+    <div style="display:grid;grid-template-columns:150px 1fr 1fr 80px;gap:12px;align-items:end">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Date</label>
+        <input type="date" id="tempDate" required>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Label (e.g. "Bank Holiday")</label>
+        <input type="text" id="tempLabel" required>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Times (e.g. "2 &ndash; 6pm" or "Closed")</label>
+        <input type="text" id="tempTimes" required>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-primary btn-sm" style="width:100%">Save</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <table class="admin-table">
+    <thead><tr><th>Date</th><th>Label</th><th>Times</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      <% tempHours.forEach(th => { %>
+        <% const isPast = th.date < new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/London' }); %>
+      <tr style="<%= isPast ? 'opacity:0.5' : '' %>">
+        <td><%= th.date %></td>
+        <td><strong><%= th.label %></strong></td>
+        <td><%= th.times %></td>
+        <td><span class="badge <%= isPast ? 'badge-redeemed' : 'badge-active' %>"><%= isPast ? 'Passed' : 'Upcoming' %></span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick='editTemp(<%= JSON.stringify(th) %>)'>Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTemp(<%= th.id %>)">Delete</button>
+        </td>
+      </tr>
+      <% }) %>
+      <% if (tempHours.length === 0) { %>
+      <tr><td colspan="5" style="text-align:center;color:var(--mid);padding:24px">No temporary hours set.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
 <script>
 function showAddHour() {
   document.getElementById('addHourForm').style.display = '';
@@ -84,6 +140,46 @@ async function saveHour(e) {
 async function deleteHour(id) {
   if (!confirm('Delete this hours entry?')) return;
   const res = await fetch('/api/hours/' + id, { method: 'DELETE' });
+  if (res.ok) location.reload();
+  else alert('Failed to delete');
+}
+
+function showAddTemp() {
+  document.getElementById('addTempForm').style.display = '';
+  document.getElementById('tempFormTitle').textContent = 'Add Temporary Hours';
+  document.getElementById('tempEditId').value = '';
+  document.getElementById('tempDate').value = '';
+  document.getElementById('tempLabel').value = '';
+  document.getElementById('tempTimes').value = '';
+}
+
+function editTemp(th) {
+  document.getElementById('addTempForm').style.display = '';
+  document.getElementById('tempFormTitle').textContent = 'Edit Temporary Hours';
+  document.getElementById('tempEditId').value = th.id;
+  document.getElementById('tempDate').value = th.date;
+  document.getElementById('tempLabel').value = th.label;
+  document.getElementById('tempTimes').value = th.times;
+}
+
+async function saveTemp(e) {
+  e.preventDefault();
+  const id = document.getElementById('tempEditId').value;
+  const data = {
+    date: document.getElementById('tempDate').value,
+    label: document.getElementById('tempLabel').value,
+    times: document.getElementById('tempTimes').value,
+  };
+  const url = id ? '/api/temp-hours/' + id : '/api/temp-hours';
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+  if (res.ok) location.reload();
+  else alert('Failed to save');
+}
+
+async function deleteTemp(id) {
+  if (!confirm('Delete this temporary hours entry?')) return;
+  const res = await fetch('/api/temp-hours/' + id, { method: 'DELETE' });
   if (res.ok) location.reload();
   else alert('Failed to delete');
 }

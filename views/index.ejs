@@ -364,6 +364,12 @@ body {
   <% hours.forEach((h, i) => { %>
     <%= h.label %>: <%= h.times.replace(/<br\s*\/?>/g, ' ') %><% if (i < hours.length - 1) { %><br><% } %>
   <% }) %>
+  <% if (tempHours && tempHours.length > 0) { %>
+    <br><br>
+    <% tempHours.forEach((th, i) => { %>
+      <strong><%= th.label %></strong> (<%= th.dateFormatted %>): <%= th.times %><% if (i < tempHours.length - 1) { %><br><% } %>
+    <% }) %>
+  <% } %>
 </div>
 
 <main class="menu" id="menu">

@@ -88,7 +88,8 @@ router.get('/allergens', async (req, res) => {
 // Hours management
 router.get('/hours', async (req, res) => {
   const hours = db.all('SELECT * FROM opening_hours ORDER BY sort_order');
-  res.render('admin/hours', { hours });
+  const tempHours = db.all('SELECT * FROM temporary_hours ORDER BY date ASC');
+  res.render('admin/hours', { hours, tempHours });
 });
 
 // Announcements (banner & popup)

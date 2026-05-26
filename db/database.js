@@ -81,6 +81,16 @@ function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Temporary opening hours (date-specific overrides)
+    CREATE TABLE IF NOT EXISTS temporary_hours (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      label TEXT NOT NULL,
+      times TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_temporary_hours_date ON temporary_hours(date);
+
     -- Site settings (key-value)
     CREATE TABLE IF NOT EXISTS site_settings (
       key TEXT PRIMARY KEY,

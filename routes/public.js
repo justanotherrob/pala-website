@@ -21,12 +21,25 @@ router.get('/', async (req, res) => {
     const hours = cache.cached('hours', () =>
       db.all('SELECT * FROM opening_hours ORDER BY sort_order')
     )();
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/London' });
+    const tempHours = cache.cached('temp-hours', () => {
+      const rows = db.all(
+        'SELECT * FROM temporary_hours WHERE date >= ? ORDER BY date ASC',
+        [today]
+      );
+      return rows.map(r => ({
+        ...r,
+        dateFormatted: new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', {
+          weekday: 'short', day: 'numeric', month: 'short'
+        })
+      }));
+    }, 10 * 60 * 1000)();
     const menuItems = cache.cached('menu', () =>
       db.all("SELECT * FROM menu_items WHERE visible = 1 ORDER BY CASE WHEN category = 'pizza' THEN 0 WHEN category = 'dessert' THEN 1 ELSE 2 END, sort_order, id")
     )();
     const stripeKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
 
-    res.render('index', { settings, hours, menuItems, stripeKey });
+    res.render('index', { settings, hours, tempHours, menuItems, stripeKey });
   } catch (err) {
     console.error('Error loading home:', err);
     res.status(500).send('Something went wrong');
