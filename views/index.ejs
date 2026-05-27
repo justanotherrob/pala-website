@@ -366,8 +366,9 @@ body {
   <% }) %>
   <% if (tempHours && tempHours.length > 0) { %>
     <br><br>
+    <strong style="font-size:0.85em;letter-spacing:0.08em;text-transform:uppercase;opacity:0.6">Temporary Hours</strong><br>
     <% tempHours.forEach((th, i) => { %>
-      <strong><%= th.label %></strong> (<%= th.dateFormatted %>): <%= th.times %><% if (i < tempHours.length - 1) { %><br><% } %>
+      <%= th.dateFormatted %> — <%= th.label %>: <%= th.times %><% if (i < tempHours.length - 1) { %><br><% } %>
     <% }) %>
   <% } %>
 </div>
