@@ -22,10 +22,13 @@ router.get('/', async (req, res) => {
       db.all('SELECT * FROM opening_hours ORDER BY sort_order')
     )();
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/London' });
+    const lookaheadDays = parseInt(settings.temp_hours_days) || 7;
+    const maxDate = new Date(new Date(today + 'T00:00:00').getTime() + lookaheadDays * 86400000)
+      .toLocaleDateString('en-CA');
     const tempHours = cache.cached('temp-hours', () => {
       const rows = db.all(
-        'SELECT * FROM temporary_hours WHERE date >= ? ORDER BY date ASC',
-        [today]
+        'SELECT * FROM temporary_hours WHERE date >= ? AND date <= ? ORDER BY date ASC',
+        [today, maxDate]
       );
       return rows.map(r => ({
         ...r,

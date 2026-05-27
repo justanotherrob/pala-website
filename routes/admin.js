@@ -89,7 +89,9 @@ router.get('/allergens', async (req, res) => {
 router.get('/hours', async (req, res) => {
   const hours = db.all('SELECT * FROM opening_hours ORDER BY sort_order');
   const tempHours = db.all('SELECT * FROM temporary_hours ORDER BY date ASC');
-  res.render('admin/hours', { hours, tempHours });
+  const lookahead = db.get("SELECT value FROM site_settings WHERE key = 'temp_hours_days'");
+  const tempHoursDays = lookahead ? lookahead.value : '7';
+  res.render('admin/hours', { hours, tempHours, tempHoursDays });
 });
 
 // Announcements (banner & popup)

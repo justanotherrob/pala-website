@@ -205,6 +205,7 @@ function initDatabase() {
     { key: 'popup_enabled', value: 'false', label: 'Popup Enabled' },
     { key: 'popup_title', value: '', label: 'Popup Title' },
     { key: 'popup_text', value: '', label: 'Popup Text' },
+    { key: 'temp_hours_days', value: '7', label: 'Temp Hours Lookahead (days)' },
   ];
   const settingsStmt = sqlite.prepare('INSERT OR IGNORE INTO site_settings (key, value, label) VALUES (?, ?, ?)');
   for (const s of announcementDefaults) {

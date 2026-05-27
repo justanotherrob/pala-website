@@ -58,6 +58,13 @@
   <button class="btn btn-primary" onclick="showAddTemp()">+ Add Temporary</button>
 </div>
 
+<div class="card" style="margin-bottom:24px;display:flex;align-items:center;gap:12px;padding:16px 20px">
+  <label for="tempHoursDays" style="font-size:14px;font-weight:500;white-space:nowrap">Show on site for the next</label>
+  <input type="number" id="tempHoursDays" value="<%= tempHoursDays %>" min="1" max="90" style="width:70px;padding:8px 10px;border:1px solid rgba(0,0,0,0.1);border-radius:8px;font-family:inherit;font-size:14px;text-align:center">
+  <span style="font-size:14px;color:var(--mid)">days</span>
+  <button class="btn btn-primary btn-sm" onclick="saveLookahead()">Save</button>
+</div>
+
 <div id="addTempForm" class="card" style="display:none;margin-bottom:24px">
   <h2 id="tempFormTitle">Add Temporary Hours</h2>
   <form onsubmit="saveTemp(event)">
@@ -173,6 +180,17 @@ async function saveTemp(e) {
   const url = id ? '/api/temp-hours/' + id : '/api/temp-hours';
   const method = id ? 'PUT' : 'POST';
   const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+  if (res.ok) location.reload();
+  else alert('Failed to save');
+}
+
+async function saveLookahead() {
+  const val = document.getElementById('tempHoursDays').value;
+  if (!val || val < 1) return alert('Must be at least 1 day');
+  const res = await fetch('/api/settings/temp_hours_days', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ value: val })
+  });
   if (res.ok) location.reload();
   else alert('Failed to save');
 }
