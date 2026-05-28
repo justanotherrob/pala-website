@@ -328,7 +328,7 @@ body {
 
 <% if (settings.banner_enabled === 'true' && settings.banner_text) { %>
 <div class="announce-banner" id="announceBanner">
-  <%= settings.banner_text %>
+  <%- settings.banner_text %>
   <button class="announce-banner-close" onclick="document.getElementById('announceBanner').remove()">&times;</button>
 </div>
 <% } %>
@@ -336,8 +336,8 @@ body {
 <% if (settings.popup_enabled === 'true' && (settings.popup_title || settings.popup_text)) { %>
 <div class="announce-popup-overlay" id="announcePopup" style="display:none">
   <div class="announce-popup">
-    <% if (settings.popup_title) { %><h2><%= settings.popup_title %></h2><% } %>
-    <% if (settings.popup_text) { %><p><%= settings.popup_text %></p><% } %>
+    <% if (settings.popup_title) { %><h2><%- settings.popup_title %></h2><% } %>
+    <% if (settings.popup_text) { %><p><%- settings.popup_text %></p><% } %>
     <button class="announce-popup-close" onclick="document.getElementById('announcePopup').remove()">Got it</button>
   </div>
 </div>

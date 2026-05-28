@@ -134,7 +134,7 @@ body{margin:0;padding:0;background:#F7F5F3;color:#000;font-family:'Cabin',system
 
 <% if (settings.banner_enabled === 'true' && settings.banner_text) { %>
 <div class="announce-banner" id="announceBanner">
-  <%= settings.banner_text %>
+  <%- settings.banner_text %>
   <button class="announce-banner-close" onclick="document.getElementById('announceBanner').remove()">&times;</button>
 </div>
 <% } %>

@@ -77,7 +77,7 @@ td.other{font-size:12px;opacity:0.8}
 
 <% if (settings.banner_enabled === 'true' && settings.banner_text) { %>
 <div class="announce-banner" id="announceBanner">
-  <%= settings.banner_text %>
+  <%- settings.banner_text %>
   <button class="announce-banner-close" onclick="document.getElementById('announceBanner').remove()">&times;</button>
 </div>
 <% } %>
