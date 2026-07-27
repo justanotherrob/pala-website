@@ -129,6 +129,36 @@ router.put('/hours/:id', async (req, res) => {
   res.json({ success: true });
 });
 
+// POST /api/hours/:id/move — Reorder
+router.post('/hours/:id/move', async (req, res) => {
+  const { direction } = req.body;
+  if (!['up', 'down'].includes(direction)) return res.status(400).json({ error: 'Invalid direction' });
+
+  const item = db.get('SELECT * FROM opening_hours WHERE id = ?', [req.params.id]);
+  if (!item) return res.status(404).json({ error: 'Not found' });
+
+  let neighbour;
+  if (direction === 'up') {
+    neighbour = db.get(
+      'SELECT * FROM opening_hours WHERE sort_order < ? ORDER BY sort_order DESC LIMIT 1',
+      [item.sort_order]
+    );
+  } else {
+    neighbour = db.get(
+      'SELECT * FROM opening_hours WHERE sort_order > ? ORDER BY sort_order ASC LIMIT 1',
+      [item.sort_order]
+    );
+  }
+
+  if (!neighbour) return res.json({ success: true });
+
+  db.run("UPDATE opening_hours SET sort_order = ?, updated_at = datetime('now') WHERE id = ?", [neighbour.sort_order, item.id]);
+  db.run("UPDATE opening_hours SET sort_order = ?, updated_at = datetime('now') WHERE id = ?", [item.sort_order, neighbour.id]);
+
+  cache.invalidate('hours');
+  res.json({ success: true });
+});
+
 // DELETE /api/hours/:id
 router.delete('/hours/:id', async (req, res) => {
   db.run('DELETE FROM opening_hours WHERE id = ?', [req.params.id]);

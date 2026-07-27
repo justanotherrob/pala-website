@@ -37,7 +37,9 @@
         <td><%= h.sort_order %></td>
         <td><strong><%= h.label %></strong></td>
         <td><%- h.times %></td>
-        <td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-outline btn-sm" onclick="moveHour(<%= h.id %>, 'up')" title="Move up">&uarr;</button>
+          <button class="btn btn-outline btn-sm" onclick="moveHour(<%= h.id %>, 'down')" title="Move down">&darr;</button>
           <button class="btn btn-outline btn-sm" onclick='editHour(<%= JSON.stringify(h) %>)'>Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteHour(<%= h.id %>)">Delete</button>
         </td>
@@ -128,6 +130,15 @@ function editHour(h) {
   document.getElementById('hourEditId').value = h.id;
   document.getElementById('hourLabel').value = h.label;
   document.getElementById('hourTimes').value = h.times;
+}
+
+async function moveHour(id, direction) {
+  const res = await fetch('/api/hours/' + id + '/move', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ direction })
+  });
+  if (res.ok) location.reload();
+  else alert('Failed to move');
 }
 
 async function saveHour(e) {
